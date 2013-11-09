@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string name="app_name">SvB-NxT</string>
+    <string name="version">v0.9</string>               
+
+    <!-- GENERAL -->
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="ok">OK</string>
+    <string name="turn_on">start</string>
+	<string name="turn_off">stop</string>
+    
+    <!-- BLUETOOTH MESSAGES -->
+    <string name="connecting_please_wait">Connecting to your NXT robot.\nPlease wait…</string>
+    <string name="no_paired_nxt">No paired NXT robot found!</string>
+    <string name="problem_at_connecting">Problem in creating a connection!</string>
+    <string name="problem_at_closing">Problem in closing the connection!</string>
+    <string name="problem_at_sending">Problem in sending a message!</string>
+    <string name="problem_at_receiving">Problem in receiving a message!</string>  
+    <string name="current_position">Current position: </string>    
+    <string name="bt_error_dialog_title">BlueTooth Error</string>    
+    <string name="bt_error_dialog_message">Oh, no! It seems that your NXT robot is not switched on. Please make sure that \n your NXT robot is on and has BlueTooth switched on and then try again to connect.</string>    
+    <string name="bt_needs_to_be_enabled">You need to enable BlueTooth first!"</string>    
+    
+    <!--  DEVICE LIST ACTIVITY -->
+    <string name="searching">searching …</string>
+    <string name="scanning">Scanning area for NXT robots…</string>
+    <string name="select_device">Select NXT robot</string>
+    <string name="none_paired">No NXT robots have been paired.</string>
+    <string name="none_found">No NXT robots to be found.</string>
+    <string name="title_paired_devices">Paired NXT robots</string>
+    <string name="title_other_devices">Other available NXT robots</string>
+    <string name="button_scan">Scan for the new NXT robot</string>
+    <string name="pairing_message">After pairing, press <b>Menu</b> and connect.</string>
+    <string name="wait_till_bt_on">Turning BlueTooth on to connect to your NXT robot.</string>
+    <string name="bt_off_message">BlueTooth is turned off. See you later!</string>   
+
+    <!--  SENSOR BLUETOOTH PROBLEM -->
+    <string name="sensor_initialization_failure">No appropriate sensor found!</string>    
+    <string name="bt_initialization_failure">BlueTooth not supported!</string>    
+    
+    <!-- HELP DIALOGS -->
+    <string name="help_robot_tribot">Default known basic robot.\n\n Connection setup:\n - claws motor A\n - left motor B\n - right motor C \n\n - touch sensor - port1 \n - sound sensor - port2 \n - light sensor - port3 \n - ultrasonic sensor - port4</string>
+    <string name="help_robot_segway">Two wheels balance robot.\n\n Connection setup:\n - left motor B\n - right motor C \n\n - gyroscope sensor port 1</string>
+    <string name="help_robot_lejos">Not specific type of robot. Good for new or temporary projcets for testing.</string>
+    <string name="help_robot_printer">This robot allows to print on white paper size A4. \n\n Connection setup:\n - motor A move paper\n - motor B X-axis\n - motor C Y-axis</string>
+	
+    
+	
+    <!-- MAIN -->
+    <string name="robot">Robot</string>
+    <string name="program">Program</string>
+	
+    <!-- PROGRAMS -->
+    <string name="program_move_direction">Move direction</string>
+    <string name="program_move_motor">Move motors</string>
+    <string name="program_move_by_color">Move by colors</string>
+    <string name="program_move_accelerometer">Move accelerometer</string>
+    <string name="program_read_line">Read line</string>
+    <string name="program_print_test">Print test</string>
+    <string name="program_print_foto">Print foto</string>
+    <string name="program_segway">Balance move</string>
+	
+	<!-- PROGRAM MOVE ACCELEROMETER -->
+	<string name="accelerometer_up_down">Up-down</string>
+	<string name="accelerometer_left_right">Left-Right</string>
+	
+	<!-- PROGRAM MOVE BY COLORS -->
+	<string name="colors_color_effect">Color Effect</string>
+	<string name="colors_resolution">Resolution</string>
+	
+	<!-- PROGRAM MOVE DIRECTIONS -->
+	<string name="directions_slow">slow</string>
+	<string name="directions_medium">medium</string>
+	<string name="directions_fast">fast</string>
+	
+	<!-- PROGRAM MOVE MOTORS -->
+	<string name="motor_a">Motor A</string>
+	<string name="motor_b">Motor B</string>
+	<string name="motor_c">Motor C</string>
+	<string name="motor_speed">Speed: </string>
+	
+	<!-- PROGRAM PRINT TEST -->
+	<string name="print_test">print test</string>
+	
+	<!-- PROGRAM PRINT FOTO -->
+	
+	<!-- PROGRAM READ LINE -->
+	<string name="read_line_update_value">update value</string>
+	
+	<!-- PROGRAM SEGWAY -->
+    
+    
+</resources>
