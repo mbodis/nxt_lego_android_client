@@ -94,7 +94,7 @@ public class MainMenuActivity extends Activity {
 			list.add(getString(R.string.program_move_motor));
 		} else if (robotType == ROBOT_ID_PRINTER) {
 			list.add(getString(R.string.program_print_test));
-			//list.add(PROGRAM_NAME_PRINT_FOTO);//TODO
+			//list.add(PROGRAM_NAME_PRINT_FOTO); //TODO
 		} else if (robotType == ROBOT_ID_SEGWAY) {
 			list.add(getString(R.string.program_print_foto));			
 		}
