@@ -21,6 +21,17 @@ public class GamePrinterTest extends GameTemplateClass{
 			
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
 			
+			/*
+			drawLine("1111111111111110");			
+			drawLine("1100000000000110");
+			drawLine("1100110001100110");
+			drawLine("1100110001100110");
+			drawLine("1100000000000110");
+			drawLine("1100111111100110");
+			drawLine("1100000000000110");
+			drawLine("1111111111111110");
+			*/			
+			
 			byte bval1 = (byte) Integer.parseInt("11111111", 2);
 			byte bval2 = (byte) Integer.parseInt("11111110", 2);
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval1);
@@ -71,12 +82,6 @@ public class GamePrinterTest extends GameTemplateClass{
 			
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);
 							
-	//		byte bval = (byte) Integer.parseInt("01111111", 2);
-	//	    Toast.makeText(getApplicationContext(), "m " + bval + " " + Integer.toBinaryString(bval), Toast.LENGTH_LONG).show();			    
-	//	    byte bval2 = (byte) Integer.parseInt("10000000", 2);				
-	//	    Toast.makeText(getApplicationContext(), "m " + bval2, Toast.LENGTH_LONG).show();
-	//	    byte bval3  = (byte) Integer.parseInt("00000001", 2);				
-	//	    Toast.makeText(getApplicationContext(), "m " + bval3, Toast.LENGTH_LONG).show();
 		}else{
 			Toast.makeText(thisActivity, "not connected ", Toast.LENGTH_SHORT).show();
 		}

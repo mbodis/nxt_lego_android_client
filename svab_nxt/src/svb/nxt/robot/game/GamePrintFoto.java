@@ -50,10 +50,12 @@ public class GamePrintFoto extends GameTemplateClass implements
 	private boolean doCanny = false;
 	private Mat foto = null;
 	
+	//XXX btn 
 	public void capture(View view){		
 		doCapture = true;
 	}
 	
+	// XXX btn button
 	public void doLog(View view){		
 		if (foto != null){
 			// Log.d("SSS", "cols:"+foto.cols() + "rows:"+foto.rows());			
