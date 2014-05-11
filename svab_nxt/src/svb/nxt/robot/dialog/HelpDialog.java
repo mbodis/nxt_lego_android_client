@@ -1,6 +1,7 @@
 package svb.nxt.robot.dialog;
 
-import svb.lib.SvbSupportClass;
+
+import svb.lib.SuppClass;
 import svb.nxt.robot.R;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -55,9 +56,9 @@ public class HelpDialog extends DialogFragment{
 			v = inflater.inflate(R.layout.dialog_robot_type, null);
 			String text = getString(R.string.app_name) + " " + getString(R.string.version);
 			text += "\n\n";
-			text += SvbSupportClass.loadFile(getResources(), R.raw.licence_apache2);
+			text += SuppClass.loadFileFromRaw(getResources(), R.raw.licence_apache2);
 			text += "\n\n";
-			text += SvbSupportClass.loadFile(getResources(), R.raw.licence_mind_droid);			
+			text += SuppClass.loadFileFromRaw(getResources(), R.raw.licence_mind_droid);			
 			
 			((TextView)v.findViewById(R.id.textView1)).setText(text);
 			break;

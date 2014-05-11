@@ -80,6 +80,7 @@
 	<string name="motor_b">Motor B</string>
 	<string name="motor_c">Motor C</string>
 	<string name="motor_speed">Speed: </string>
+	<string name="motor_acceleration">Acceleration: </string>
 	
 	<!-- PROGRAM PRINT TEST -->
 	<string name="print_test">print test</string>

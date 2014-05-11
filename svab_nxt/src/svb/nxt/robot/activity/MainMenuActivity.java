@@ -11,6 +11,7 @@ import svb.nxt.robot.game.GameMoveAccelerometer;
 import svb.nxt.robot.game.GameMoveColorActivity;
 import svb.nxt.robot.game.GameMoveDirectionActivity;
 import svb.nxt.robot.game.GameMoveMotorActivity;
+import svb.nxt.robot.game.GamePrintFoto;
 import svb.nxt.robot.game.GamePrinterTest;
 import svb.nxt.robot.game.GameReadLine;
 import svb.nxt.robot.game.GameSegwayMove;
@@ -94,9 +95,9 @@ public class MainMenuActivity extends Activity {
 			list.add(getString(R.string.program_move_motor));
 		} else if (robotType == ROBOT_ID_PRINTER) {
 			list.add(getString(R.string.program_print_test));
-			//list.add(PROGRAM_NAME_PRINT_FOTO); //TODO
+			list.add(getString(R.string.program_print_foto));
 		} else if (robotType == ROBOT_ID_SEGWAY) {
-			list.add(getString(R.string.program_print_foto));			
+			list.add(getString(R.string.program_segway));			
 		}
 		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
 				getApplicationContext(), android.R.layout.simple_spinner_item,
@@ -159,11 +160,12 @@ public class MainMenuActivity extends Activity {
 			playGame = new Intent(getApplicationContext(),
 					GamePrinterTest.class);
 		} else if (selectedProgram.equals(getString(R.string.program_print_foto))){
-			//TODO FOTO feature
-			Toast.makeText(getApplicationContext(), "TODO in progress", Toast.LENGTH_SHORT).show();
-		} else if (selectedProgram.equals(getString(R.string.program_segway))){		
 			playGame = new Intent(getApplicationContext(),
-					GameSegwayMove.class);
+					GamePrintFoto.class);
+		} else if (selectedProgram.equals(getString(R.string.program_segway))){
+			Toast.makeText(getApplicationContext(), "in progress ...", Toast.LENGTH_SHORT).show();
+//			playGame = new Intent(getApplicationContext(),
+//					GameSegwayMove.class);
 		}
 		if (playGame != null) {			
 			startActivity(playGame);

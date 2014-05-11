@@ -1,10 +1,12 @@
 TODO LIST:
 
 - accelerometer - vizualizacia naklonenia
-- move motors - sprav percentualne zobrazenie - aj cceleraciu
+
 - move by colors - opravit (nastavitelne farby), ON OFF spustanie
- 
+
 - gyroscope - segway
+
 - tlaciaren - bt prenos fotky -> zhotovenie foto do b&w + rezise
 - tlaciaren - bt prenos fotky -> protocol?
+
 - spravit list prikazov kt. robot vykonava(moznost ich dragovanim prenasat) 

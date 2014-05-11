@@ -46,6 +46,9 @@ public class BTControls {
 	public static final int MOTOR_C_FORWARD_STOP = 31;
 	public static final int MOTOR_C_BACKWARD_START = 32;
 	public static final int MOTOR_C_BACKWARD_STOP = 33;
+		
+	public static final int MOTOR_SET_SPEED = 34;
+	public static final int MOTOR_SET_ACC = 35;
 	
 	
 	/**
