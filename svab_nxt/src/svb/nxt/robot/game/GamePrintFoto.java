@@ -1,7 +1,5 @@
 package svb.nxt.robot.game;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -19,8 +17,9 @@ import svb.nxt.robot.bt.BTConnectable;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.GameTemplateClass;
+import svb.nxt.robot.logic.ImageConvertClass;
+import svb.nxt.robot.logic.ImageLog;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.Menu;
@@ -28,7 +27,9 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 
@@ -46,77 +47,132 @@ public class GamePrintFoto extends GameTemplateClass implements
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
 	
-	private boolean doCapture = false;
-	private boolean doCanny = false;
-	private Mat foto = null;
+	private boolean doCapture = false;	
+	private Mat capturedImage = null;
 	
-	//XXX btn 
-	public void capture(View view){		
-		doCapture = true;
-	}
+	private Button btnCaptureImage, btnSaveFull, btnCanny,
+		invertBtn, btnSaveCrop, btnSendCrop;
 	
-	// XXX btn button
-	public void doLog(View view){		
-		if (foto != null){
-			// Log.d("SSS", "cols:"+foto.cols() + "rows:"+foto.rows());			
-			Bitmap btm = Bitmap.createBitmap(foto.cols(), foto.rows(), Bitmap.Config.ARGB_8888);			
-			org.opencv.android.Utils.matToBitmap(foto, btm);
-			
-			// Log.d("SSS", "w"+btm.getWidth()+" h"+btm.getHeight() )	
-			// Bitmap res = Bitmap.createBitmap(btm, 0, 0, 100, 100); // crop image
-			
-			saveImageToFile(btm);
-		}
+	@Override
+	public void setupLayout(){
 		
-	}	
-	
-	/**
-	 * test ci je viac ciernej ako bielel
-	 * //kedze ideme tlacit na c/b tlaciarni...
-	 * @param bitmap
-	 * @return
-	 */
-	private boolean hasImageMoreBlackThanWhite(Bitmap bitmap){
-		int height = bitmap.getHeight();
-        int width = bitmap.getWidth();
-		int black = 0; int white = 0; int other = 0; int pixelColor;  int A, R, G, B;
-        	for (int y = 0; y < height; y++) {
-        		for (int x = 0; x < width; x++) {
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		setContentView(R.layout.game_printer_foto);
 
-	        		pixelColor = bitmap.getPixel(x, y);
-					A = Color.alpha(pixelColor); 
-					R = Color.red(pixelColor);
-					G = Color.green(pixelColor);
-					B = Color.blue(pixelColor);
-	                  
-					if (R==0 && G==0 && B==0){
-						black++;
-					}else if (R==255 && G==255 && B==255){
-						white++;
-					}else{
-						other++;
+		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
+		
+		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+		mOpenCvCameraView.setCvCameraViewListener(this);
+		
+		btnCaptureImage = (Button) findViewById(R.id.btnCapture);
+		btnCaptureImage.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				btnCaptureImage.setText((capturedImage == null)? "reset" : "capture");
+				if (capturedImage!=null){
+					capturedImage = null;
+					toggleBtns();
+					return;
+				}				
+				
+				doCapture = true;
+				toggleBtns();
+			}
+
+		});
+		btnSaveFull = (Button) findViewById(R.id.btnSaveFull);
+		btnSaveFull.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (capturedImage != null){			
+					ImageLog.saveImageToFile(GamePrintFoto.this, ImageConvertClass.matToBitmap(capturedImage));
+				}								
+			}
+		});		
+		btnCanny = (Button) findViewById(R.id.btnCanny);
+		btnCanny.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {	
+				if (capturedImage != null){
+					Imgproc.Canny(capturedImage, capturedImage, 20, 120);
+				}
+			}
+		});
+		
+		invertBtn = (Button) findViewById(R.id.btnInverse);
+		invertBtn.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {	
+				if (capturedImage != null){
+					try{
+//						capturedImage = ImageConvertClass.invertBWImage(capturedImage);
+					}catch(Exception ex){
+						Toast.makeText(thisActivity, "err: " + ex.getMessage(), 
+								Toast.LENGTH_LONG).show();
 					}
-        		}
-        	}
-          //Log.d("SSS", "bl:"+bl + " wh:"+wh+" ot" + ot);
-        if (black > white){
-        	return true;
-        }
-        
-        return false;
+				}
+			}
+		});
+		btnSaveCrop = (Button) findViewById(R.id.btnSaveCrop);
+		btnSaveCrop.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {	
+				ImageLog.saveImageToFile(GamePrintFoto.this, ImageConvertClass.cropImage(capturedImage, 100, 60));
+			}
+		});
+		
+		btnSendCrop = (Button) findViewById(R.id.btnSendCrop);
+		btnSendCrop.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				//96 * 30 * 8 binarnych cisel - max
+				int cX = 12;
+				int cropX = 8*cX;
+				int cropy = 60;
+				
+				Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropy);
+				StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
+				Log.d("SVB", "res: " + sb.toString());
+				
+				
+				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
+				boolean end_row = false;
+				for (int r=0;r<cropy;r++){
+					for (int i=0;i<cX;i++){
+						int from = r*cropX + i*8;
+						int to = from + 8;
+						byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
+						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
+						//String binn = sb.substring(from, to);
+						//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
+						if (end_row){
+							sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
+						}
+						end_row = false;
+					}
+					end_row = true;
+				}
+				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);
+			}
+		});
+		
 	}
 	
-	private void saveImageToFile(Bitmap bitmap){
-		try {
-			(new File(getExternalFilesDir(null) + "/log", "")).mkdirs();
-			File file = new File(getExternalFilesDir(null) + "/log", "sd.png"); 
-			FileOutputStream out = new FileOutputStream(file);
-			bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
-			out.close();
-		} catch (Exception e) {
-	       e.printStackTrace();
-		}
+	private void toggleBtns() {
+		int show = (doCapture==false) ? View.GONE : View.VISIBLE; 
+		btnSaveFull.setVisibility(show);
+		btnCanny.setVisibility(show);
+//		invertBtn.setVisibility(show);
+		btnSaveCrop.setVisibility(show);
+		btnSendCrop.setVisibility(show);
 	}
+	
 
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@Override
@@ -135,20 +191,7 @@ public class GamePrintFoto extends GameTemplateClass implements
 	
 	public GamePrintFoto() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
-	}
-	
-	@Override
-	public void setupLayout(){
-		
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.game_printer_foto);
-
-		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
-		
-
-		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-		mOpenCvCameraView.setCvCameraViewListener(this);
-	}
+	}	
 
 	@Override
 	public void onPause() {
@@ -189,23 +232,20 @@ public class GamePrintFoto extends GameTemplateClass implements
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		
-
-		if (foto != null){
-//			Log.d("SSS", "kurava");
-			if (!doCanny){
-				Imgproc.Canny(foto, foto, 20, 120);
-				doCanny = true;
-			}
-			return foto;
+		if (capturedImage != null){
+			return capturedImage;
 		}
-				
 		
 		Mat src = inputFrame.rgba();
 		if (doCapture){
 			Log.d("SSS", "doCapture = true");
 			doCapture = false;
-			foto = src;
+			capturedImage = src;			
 		}
+		if (capturedImage != null){
+			return capturedImage;
+		}
+			
 		
 		return src;
 	}
@@ -282,7 +322,7 @@ public class GamePrintFoto extends GameTemplateClass implements
 	@Override
 	public void onConnectToDevice() {
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_MOVE_OPEN_CV_COLOR, 0);		
+				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST, 0);		
 	}
 
 }

@@ -83,7 +83,8 @@
 	<string name="motor_acceleration">Acceleration: </string>
 	
 	<!-- PROGRAM PRINT TEST -->
-	<string name="print_test">print test</string>
+	<string name="print_test">B/W print test</string>
+	<string name="print_test_display">B/W display test NXT</string>
 	
 	<!-- PROGRAM PRINT FOTO -->
 	

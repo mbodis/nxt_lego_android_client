@@ -14,8 +14,15 @@ public class GamePrinterTest extends GameTemplateClass{
 		setContentView(R.layout.game_printer_test_layout);				
 	}
 
-	public void doTest(View view){		
-		
+	public void doTestDisplay(View view){
+		sendTestContent(true);
+	}
+	public void doTest(View view){
+		sendTestContent(false);
+	}
+	
+	//NXT 100×60 pixels
+	private void sendTestContent(boolean doPrint){
 		if (isConnected()){
 			Toast.makeText(thisActivity, "testing ... ", Toast.LENGTH_SHORT).show();
 			
@@ -80,7 +87,7 @@ public class GamePrinterTest extends GameTemplateClass{
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval16);
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
 			
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, doPrint? 1 : 0);
 							
 		}else{
 			Toast.makeText(thisActivity, "not connected ", Toast.LENGTH_SHORT).show();

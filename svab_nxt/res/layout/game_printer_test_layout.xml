@@ -5,6 +5,7 @@
     android:orientation="vertical" >
 
     <Button
+        android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -14,5 +15,19 @@
         android:onClick="doTest"
         android:padding="10dp"
         android:text="@string/print_test" />
+
+    <Button
+        android:id="@android:id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/my_black_white_selector"
+        android:drawableLeft="@android:drawable/ic_media_play"
+        android:drawablePadding="10dp"
+        android:onClick="doTestDisplay"
+        android:padding="10dp"
+        android:text="@string/print_test_display" />
 
 </RelativeLayout>

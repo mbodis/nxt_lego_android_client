@@ -7,16 +7,13 @@ import svb.nxt.robot.activity.DeviceListActivity;
 import svb.nxt.robot.activity.MainMenuActivity;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTConnectable;
-import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.bt.LCPMessage;
 import svb.nxt.robot.dialog.ErrorBtDialog;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,16 +21,10 @@ import android.os.Message;
 import android.os.Vibrator;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.Window;
-import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
-public abstract class GameTemplateClass extends Activity implements BTConnectable {
+public abstract class GameTemplateClass extends Activity implements BTConnectable, GameInterface {
 
 	public static final int MENU_TOGGLE_CONNECT = Menu.FIRST;
 
@@ -72,11 +63,6 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 		
 		setupLayout();
 	}
-
-	/**
-	 * TODO DEFINE NEW IN GAME ACTIVITY
-	 */ 
-	public abstract void setupLayout();
 
 	/**
 	 * Updates the menus and possible buttons when connection status changed.
@@ -270,17 +256,7 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 		}
 
 		return false;
-	}
-
-	/**
-	 * TODO on Connect to device send some init you need
-	 */
-	public abstract void onConnectToDevice();
-//	{
-//		//example
-//		sendBTCmessage(BTCommunicator.NO_DELAY,
-//		BTCommunicator.GAME_TYPE, BTControls.PROGRAM_MOVE_DIRECTION, 0);	
-//	}
+	}	
 	
 	/**
 	 * Receive messages from the BTCommunicator

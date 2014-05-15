@@ -76,6 +76,8 @@ public class BTControls {
 	/**
 	 * PRINTER
 	 */
+	public static final int FILE_PAUSE = 53;
+	public static final int FILE_RESUME = 54;
 	public static final int FILE_START = 55;
 	public static final int FILE_END = 56;
 	public static final int FILE_NEW_LINE = 57;

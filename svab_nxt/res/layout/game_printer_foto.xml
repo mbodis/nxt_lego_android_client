@@ -9,18 +9,57 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <Button
-        android:id="@android:id/button1"
+    <LinearLayout
+        android:layout_alignParentRight="true"
+        android:background="@android:color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="capture"
-        android:text="caputre" />
+        android:orientation="vertical" >
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@android:id/button1"
-        android:onClick="doLog"
-        android:text="doLog" />
+        <Button
+            android:id="@+id/btnCapture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@android:drawable/ic_menu_camera"
+            android:text="caputre" />
+
+        <Button
+            android:id="@+id/btnCanny"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edge-canny"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnInverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="inverse"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnSaveFull"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="saveImg-full"
+            android:drawableLeft="@android:drawable/ic_menu_save"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnSaveCrop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="saveImg-crop100x60"
+            android:drawableLeft="@android:drawable/ic_menu_save"
+            android:visibility="gone" />
+        
+        <Button
+            android:id="@+id/btnSendCrop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sendIMG-crop100x60"
+            android:drawableLeft="@android:drawable/ic_menu_send"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </RelativeLayout>
