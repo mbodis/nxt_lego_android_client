@@ -28,14 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Edge-canny"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/btnInverse"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="inverse"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/btnSaveFull"
@@ -43,7 +36,7 @@
             android:layout_height="wrap_content"
             android:text="saveImg-full"
             android:drawableLeft="@android:drawable/ic_menu_save"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/btnSaveCrop"
@@ -51,7 +44,7 @@
             android:layout_height="wrap_content"
             android:text="saveImg-crop100x60"
             android:drawableLeft="@android:drawable/ic_menu_save"
-            android:visibility="gone" />
+            android:visibility="visible" />
         
         <Button
             android:id="@+id/btnSendCrop"
@@ -59,7 +52,7 @@
             android:layout_height="wrap_content"
             android:text="sendIMG-crop100x60"
             android:drawableLeft="@android:drawable/ic_menu_send"
-            android:visibility="gone" />
+            android:visibility="visible" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -33,7 +33,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 
-public class GamePrintFoto extends GameTemplateClass implements
+public class GamePrintTest2 extends GameTemplateClass implements
 		CvCameraViewListener2, BTConnectable {
 	
 	/**
@@ -51,13 +51,13 @@ public class GamePrintFoto extends GameTemplateClass implements
 	private Mat capturedImage = null;
 	
 	private Button btnCaptureImage, btnSaveFull, btnCanny,
-		invertBtn, btnSaveCrop, btnSendCrop;
+		btnSaveCrop, btnSendCrop;
 	
 	@Override
 	public void setupLayout(){
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.game_printer_foto);
+		setContentView(R.layout.game_printer_test2_layout);
 
 		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
 		
@@ -87,7 +87,7 @@ public class GamePrintFoto extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {
 				if (capturedImage != null){			
-					ImageLog.saveImageToFile(GamePrintFoto.this, ImageConvertClass.matToBitmap(capturedImage));
+					ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.matToBitmap(capturedImage));
 				}								
 			}
 		});		
@@ -101,28 +101,13 @@ public class GamePrintFoto extends GameTemplateClass implements
 				}
 			}
 		});
-		
-		invertBtn = (Button) findViewById(R.id.btnInverse);
-		invertBtn.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {	
-				if (capturedImage != null){
-					try{
-//						capturedImage = ImageConvertClass.invertBWImage(capturedImage);
-					}catch(Exception ex){
-						Toast.makeText(thisActivity, "err: " + ex.getMessage(), 
-								Toast.LENGTH_LONG).show();
-					}
-				}
-			}
-		});
+				
 		btnSaveCrop = (Button) findViewById(R.id.btnSaveCrop);
 		btnSaveCrop.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {	
-				ImageLog.saveImageToFile(GamePrintFoto.this, ImageConvertClass.cropImage(capturedImage, 100, 60));
+				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 100, 60));
 			}
 		});
 		
@@ -162,13 +147,13 @@ public class GamePrintFoto extends GameTemplateClass implements
 			}
 		});
 		
+		toggleBtns();
 	}
 	
 	private void toggleBtns() {
 		int show = (doCapture==false) ? View.GONE : View.VISIBLE; 
 		btnSaveFull.setVisibility(show);
 		btnCanny.setVisibility(show);
-//		invertBtn.setVisibility(show);
 		btnSaveCrop.setVisibility(show);
 		btnSendCrop.setVisibility(show);
 	}
@@ -189,7 +174,7 @@ public class GamePrintFoto extends GameTemplateClass implements
 		}
 	};
 	
-	public GamePrintFoto() {
+	public GamePrintTest2() {
 		Log.i(TAG, "Instantiated new " + this.getClass());
 	}	
 

@@ -12,7 +12,7 @@ import android.graphics.Bitmap;
 public class ImageLog {
 
 	/*
-	 * ulozi bitmapu do 
+	 * ulozi bitmapu do suboru
 	 */
 	public static void saveImageToFile(Context ctx, Bitmap bitmap){
 		

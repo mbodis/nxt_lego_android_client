@@ -11,10 +11,10 @@ import svb.nxt.robot.game.GameMoveAccelerometer;
 import svb.nxt.robot.game.GameMoveColorActivity;
 import svb.nxt.robot.game.GameMoveDirectionActivity;
 import svb.nxt.robot.game.GameMoveMotorActivity;
-import svb.nxt.robot.game.GamePrintFoto;
+import svb.nxt.robot.game.GamePenPrinter;
+import svb.nxt.robot.game.GamePrintTest2;
 import svb.nxt.robot.game.GamePrinterTest;
 import svb.nxt.robot.game.GameReadLine;
-import svb.nxt.robot.game.GameSegwayMove;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
@@ -95,7 +95,9 @@ public class MainMenuActivity extends Activity {
 			list.add(getString(R.string.program_move_motor));
 		} else if (robotType == ROBOT_ID_PRINTER) {
 			list.add(getString(R.string.program_print_test));
-			list.add(getString(R.string.program_print_foto));
+			list.add(getString(R.string.program_print_test2));
+			list.add(getString(R.string.program_pen_print_photo));
+			list.add(getString(R.string.program_drill_print_photo));
 		} else if (robotType == ROBOT_ID_SEGWAY) {
 			list.add(getString(R.string.program_segway));			
 		}
@@ -159,9 +161,14 @@ public class MainMenuActivity extends Activity {
 		} else if (selectedProgram.equals(getString(R.string.program_print_test))){
 			playGame = new Intent(getApplicationContext(),
 					GamePrinterTest.class);
-		} else if (selectedProgram.equals(getString(R.string.program_print_foto))){
+		} else if (selectedProgram.equals(getString(R.string.program_print_test2))){
 			playGame = new Intent(getApplicationContext(),
-					GamePrintFoto.class);
+					GamePrintTest2.class);
+		} else if (selectedProgram.equals(getString(R.string.program_pen_print_photo))){
+			playGame = new Intent(getApplicationContext(),
+					GamePenPrinter.class);	
+		} else if (selectedProgram.equals(getString(R.string.program_drill_print_photo))){
+			Toast.makeText(getApplicationContext(), "in progress ...", Toast.LENGTH_SHORT).show();
 		} else if (selectedProgram.equals(getString(R.string.program_segway))){
 			Toast.makeText(getApplicationContext(), "in progress ...", Toast.LENGTH_SHORT).show();
 //			playGame = new Intent(getApplicationContext(),

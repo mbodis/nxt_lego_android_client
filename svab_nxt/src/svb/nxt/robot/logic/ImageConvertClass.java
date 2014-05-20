@@ -4,7 +4,6 @@ import org.opencv.core.Mat;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 public class ImageConvertClass {
 
@@ -49,7 +48,7 @@ public class ImageConvertClass {
 					}
         		}
         	}
-          //Log.d("SSS", "bl:"+bl + " wh:"+wh+" ot" + ot);
+        // Log.d("SSS", "bl:"+bl + " wh:"+wh+" ot" + ot);
         if (black > white){
         	return true;
         }
@@ -57,26 +56,13 @@ public class ImageConvertClass {
         return false;
 	}
 	
-//	public static Bitmap invertBWImage(Mat mat){
-//		Bitmap bitmap = matToBitmap(mat);
-//		
-//		Bitmap mBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-//						
-//    	for (int y = 0; y < bitmap.getHeight(); y++) {
-//    		for (int x = 0; x < bitmap.getWidth(); x++) {
-//    
-//    			mBitmap.setPixel(x, y, ((bitmap.getPixel(x, y)==0)? 1:0) );					  					
-//    		}
-//    	}
-//        
-//        return mBitmap;
-//	}
-	
-//	public static Mat BitmapToMat(Bitmap mBitmap){
-//		Mat m;
-//		m.mul(m)
-//		return null;
-//	}
+	/*
+	 * ARGB MAT iamge ktory je B&W sa inverrtuje
+	 */
+	public static Mat invertBWImage(Mat mat){
+		// TODO 
+		return null;
+	}
 	
 	public static Bitmap cropImage(Mat mat, int w, int h){
 		// Log.d("SSS", "cols:"+foto.cols() + "rows:"+foto.rows());			
@@ -94,6 +80,9 @@ public class ImageConvertClass {
 		return res;	
 	}
 
+	/*
+	 * z bitmapy sa vytvori dlhy binarny retazec
+	 */
 	public static StringBuilder getImagetoBinaryStr(Bitmap b) {
 		StringBuilder sb = new StringBuilder();
 		int pixelColor;
@@ -118,5 +107,10 @@ public class ImageConvertClass {
 		}
 		
 		return sb;
+	}
+	
+	public static StringBuilder getImagetoByteStr(Bitmap b){
+		// TODO 
+		return null;
 	}
 }

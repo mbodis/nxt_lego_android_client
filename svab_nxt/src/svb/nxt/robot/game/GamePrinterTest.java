@@ -21,7 +21,7 @@ public class GamePrinterTest extends GameTemplateClass{
 		sendTestContent(false);
 	}
 	
-	//NXT 100×60 pixels
+	//NXT 100x60 pixels
 	private void sendTestContent(boolean doPrint){
 		if (isConnected()){
 			Toast.makeText(thisActivity, "testing ... ", Toast.LENGTH_SHORT).show();

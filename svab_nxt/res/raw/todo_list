@@ -1,12 +1,13 @@
 TODO LIST:
+- accelerometer - vizualizacia naklonenia
+- pen printer 
+	- bt prenos fotky progress (multipli-part)
+	- GUI b&w, canny, set size
+- drill printer 
+	- bt prenos fotky progress
+	- GUI grayscale, set size 
 
-- accelerometer - vizualizacia naklonenia 
-
-- move by colors - opravit (nastavitelne farby), ON OFF spustanie
-
+NEW FEATURES:
+- spravit list prikazov kt. robot vykonava(moznost ich dragovanim prenasat)
 - gyroscope - segway
-
-- tlaciaren - bt prenos fotky -> zhotovenie foto do b&w + rezise
-- tlaciaren - bt prenos fotky -> protocol?
-
-- spravit list prikazov kt. robot vykonava(moznost ich dragovanim prenasat) 
+- move by colors - opravit (nastavitelne farby), ON OFF spustanie 

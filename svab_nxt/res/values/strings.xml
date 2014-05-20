@@ -59,7 +59,9 @@
     <string name="program_move_accelerometer">Move accelerometer</string>
     <string name="program_read_line">Read line</string>
     <string name="program_print_test">Print test</string>
-    <string name="program_print_foto">Print foto</string>
+    <string name="program_print_test2">Print test2</string>
+    <string name="program_pen_print_photo">Pen print foto</string>
+    <string name="program_drill_print_photo">Drill print foto</string>
     <string name="program_segway">Balance move</string>
 	
 	<!-- PROGRAM MOVE ACCELEROMETER -->
