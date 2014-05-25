@@ -11,10 +11,14 @@ import android.graphics.Bitmap;
 
 public class ImageLog {
 
-	/*
-	 * ulozi bitmapu do suboru
-	 */
-	public static void saveImageToFile(Context ctx, Bitmap bitmap){
+	/**
+	 * @author SVB
+	 * 
+	 * @return 
+	 * saves bitmap into sdcard<br/>
+	 * android/data/package/log/<b>log_time.png</b> 
+	 */		
+	public static boolean saveImageToFile(Context ctx, Bitmap bitmap){
 		
 		Date date = new Date(System.currentTimeMillis());
 		String time = new SimpleDateFormat("yyyy.MM.dd_HH_mm", Locale.US).format(date);
@@ -25,8 +29,11 @@ public class ImageLog {
 			FileOutputStream out = new FileOutputStream(file);
 			bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
 			out.close();
+			return file.exists();
 		} catch (Exception e) {
 	       e.printStackTrace();
 		}
+		
+		return false;
 	}
 }

@@ -1,21 +1,3 @@
-/**
- * Copyright 2010, 2011, 2012 Guenther Hoelzl, Shawn Brown
- *
- * This file is part of MINDdroid.
- *
- * MINDdroid is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- *
- * MINDdroid is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * MINDdroid. If not, see <http://www.gnu.org/licenses/>.
- **/
-
 package svb.nxt.robot.game;
 
 import java.util.List;
@@ -39,12 +21,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/**
- * This class is for talking to a LEGO NXT robot and controlling it via
- * bluetooth and the built in acceleration sensor. The communciation to the
- * robot is done via LCP (LEGO communication protocol), so no special software
- * has to be installed on the robot.
- */
 public class GameMoveAccelerometer extends GameTemplateClass{
 
 	public static final int UPDATE_TIME = 200;
@@ -125,9 +101,6 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 						return true;
 					}
 				});
-//		mySurfaceView = new MySurfaceView(this);
-//		mySurfaceView.setId(R.id.sv);;
-//		setContentView(mySurfaceView);
 	}
 
 	public void updateCraws(boolean openClaws, boolean closeClaws, int speed) {
@@ -343,8 +316,4 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 		runThred = null;
 	}
 	
-	
-	
-	
-
 }

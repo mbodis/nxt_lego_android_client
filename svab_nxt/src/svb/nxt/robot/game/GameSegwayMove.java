@@ -17,9 +17,7 @@ public class GameSegwayMove extends GameTemplateClass{
 	private boolean forward = false; // motor B + motor C -> forward
 	private boolean backward = false; // motor B + motor C -> backward
 	private boolean rotateLeft = false; // motor B(backward) + motor C(forward)
-	private boolean rotateRight = false; // motor B(forward) + motor C(backward)
-	private boolean openClaws = false; // motor C
-	private boolean closeClaws = false; // motor C
+	private boolean rotateRight = false; // motor B(forward) + motor C(backward)	
 
 	private int moveSpeed = SPEED_MEDIUM_MOVE;		
 	
@@ -121,23 +119,6 @@ public class GameSegwayMove extends GameTemplateClass{
 			}
 		}
 	}
-
-	public void updateCraws(boolean openClaws, boolean closeClaws, int speed) {
-		if (isConnected()){
-			if (this.openClaws != openClaws) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((openClaws) ? BTControls.MOTOR_A_FORWARD_START
-								: BTControls.MOTOR_A_FORWARD_STOP), speed);
-				this.openClaws = openClaws;
-			}
-			if (this.closeClaws != closeClaws) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((closeClaws) ? BTControls.MOTOR_A_BACKWARD_START
-								: BTControls.MOTOR_A_BACKWARD_STOP), speed);
-				this.closeClaws = closeClaws;
-			}
-		}
-	}	
 			
 	@Override
 	public void onConnectToDevice() {
