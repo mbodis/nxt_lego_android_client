@@ -25,17 +25,16 @@ import svb.nxt.robot.activity.DeviceListActivity;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.logic.GameTemplateClass;
+import svb.nxt.robot.view.AccelerometerView;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -74,7 +73,8 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 
 	// view
 	private TextView t1, t2, t3;
-	private boolean power = false;
+	private boolean power = false;	
+	private AccelerometerView mAccelerometerView;
 
 	public void power(View view) {
 		if (isConnected()){
@@ -91,12 +91,14 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 
 	@Override
 	public void setupLayout() {
-		setContentView(R.layout.game_accelerator_layout);
-		
-		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		setContentView(R.layout.game_move_accelerometer_layout);
+				
 		t1 = (TextView) findViewById(R.id.textView1);
 		t2 = (TextView) findViewById(R.id.textView2);
 		t3 = (TextView) findViewById(R.id.textView3);
+		mAccelerometerView = (AccelerometerView) findViewById(R.id.sv);
+		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		mAccelerometerView.startDrawImage();
 		
 		((ImageView) findViewById(R.id.button_claw_up))
 				.setOnTouchListener(new OnTouchListener() {
@@ -123,6 +125,9 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 						return true;
 					}
 				});
+//		mySurfaceView = new MySurfaceView(this);
+//		mySurfaceView.setId(R.id.sv);;
+//		setContentView(mySurfaceView);
 	}
 
 	public void updateCraws(boolean openClaws, boolean closeClaws, int speed) {
@@ -146,7 +151,7 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 
 
 	@Override
-	public void onResume() {
+	public void onResume() {		
 		super.onResume();
 		try {
 			registerSensor();
@@ -160,7 +165,7 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 	}
 
 	@Override
-	public void onPause() {
+	public void onPause() {		
 		unregisterSensor();
 		destroyBTCommunicator();
 		super.onStop();
@@ -217,6 +222,8 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 				t3.setText(getString(R.string.accelerometer_left_right) + " : " + lefRig);
 				// left(+40) //right(-40)
 				leftRight = lefRig;
+				
+				mAccelerometerView.setCoords(-lefRig, -forwBack);
 			}
 		}
 
@@ -335,5 +342,9 @@ public class GameMoveAccelerometer extends GameTemplateClass{
 //		runThred.stop();
 		runThred = null;
 	}
+	
+	
+	
+	
 
 }

@@ -9,9 +9,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:text="TextView"
-        android:visibility="invisible" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
         android:id="@+id/textView2"
@@ -19,7 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/textView1"
         android:layout_centerHorizontal="true"
-        android:text="TextView" />
+        android:text="TextView"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <TextView
         android:id="@+id/textView3"
@@ -27,7 +28,15 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/textView2"
         android:layout_centerHorizontal="true"
-        android:text="TextView" />
+        android:text="TextView"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <svb.nxt.robot.view.AccelerometerView
+        android:id="@+id/sv"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_below="@id/textView3"
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:id="@+id/button2"
