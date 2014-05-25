@@ -131,8 +131,7 @@ public class AccelerometerView extends SurfaceView implements Callback {
 				}
 				
 				try {
-//					sleep(1000);
-					sleep(50);
+					sleep(50); // 20 redraw times a second
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
