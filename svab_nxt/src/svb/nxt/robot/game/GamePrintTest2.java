@@ -307,7 +307,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 	@Override
 	public void onConnectToDevice() {
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST, 0);		
+				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST_2, 0);		
 	}
 
 }
