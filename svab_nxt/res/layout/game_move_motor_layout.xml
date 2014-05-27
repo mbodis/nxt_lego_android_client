@@ -112,17 +112,15 @@
                 android:id="@+id/motor_A_up"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:rotation="-90"
-                android:src="@android:drawable/ic_media_play" />
+                android:layout_weight="0.5"                
+                android:src="@drawable/ic_media_play_up" />
 
             <ImageView
                 android:id="@+id/motor_A_down"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:rotation="90"
-                android:src="@android:drawable/ic_media_play" />
+                android:layout_weight="0.5"                
+                android:src="@drawable/ic_media_play_down" />
         </LinearLayout>
 
         <LinearLayout
@@ -143,17 +141,15 @@
                 android:id="@+id/motor_B_up"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:rotation="-90"
-                android:src="@android:drawable/ic_media_play" />
+                android:layout_weight="0.5"                
+                android:src="@drawable/ic_media_play_up" />
 
             <ImageView
                 android:id="@+id/motor_B_down"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:rotation="90"
-                android:src="@android:drawable/ic_media_play" />
+                android:layout_weight="0.5"                
+                android:src="@drawable/ic_media_play_down" />
         </LinearLayout>
 
         <LinearLayout
@@ -174,17 +170,15 @@
                 android:id="@+id/motor_C_up"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:rotation="-90"
-                android:src="@android:drawable/ic_media_play" />
+                android:layout_weight="0.5"                
+                android:src="@drawable/ic_media_play_up" />
 
             <ImageView
                 android:id="@+id/motor_C_down"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:rotation="90"
-                android:src="@android:drawable/ic_media_play" />
+                android:layout_weight="0.5"                
+                android:src="@drawable/ic_media_play_down" />
         </LinearLayout>
     </LinearLayout>
 

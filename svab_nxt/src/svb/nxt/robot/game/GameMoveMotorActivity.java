@@ -7,6 +7,7 @@ import svb.nxt.robot.logic.GameTemplateClass;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -17,18 +18,6 @@ import android.widget.TextView;
 
 public class GameMoveMotorActivity extends GameTemplateClass{
 	
-	public static final int ACTION_BUTTON_SHORT = 0;
-	public static final int ACTION_BUTTON_LONG = 1;
-
-	private boolean forwardMotorA = false;// open claws
-	private boolean backwardMotorA = false;// close claws
-
-	private boolean forwardMotorB = false;// left
-	private boolean backwardMotorB = false;// left
-
-	private boolean forwardMotorC = false;// right
-	private boolean backwardMotorC = false;// right
-
 	private int speed = 0;
 	private int acc = 0;
 	
@@ -41,11 +30,11 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 				.setOnTouchListener(new OnTouchListener() {
 
 					@Override
-					public boolean onTouch(View v, MotionEvent event) {
+					public boolean onTouch(View v, MotionEvent event) {						
 						if (event.getAction() == MotionEvent.ACTION_DOWN)
-							updateMotorA(forwardMotorA, true);
+							updateMotor(BTControls.MOTOR_A_FORWARD_START);							
 						if (event.getAction() == MotionEvent.ACTION_UP)
-							updateMotorA(forwardMotorA, false);
+							updateMotor(BTControls.MOTOR_A_FORWARD_STOP);							
 						return true;
 					}
 				});
@@ -54,11 +43,11 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 				.setOnTouchListener(new OnTouchListener() {
 
 					@Override
-					public boolean onTouch(View v, MotionEvent event) {
+					public boolean onTouch(View v, MotionEvent event) {						
 						if (event.getAction() == MotionEvent.ACTION_DOWN)
-							updateMotorA(true, backwardMotorA);
+							updateMotor(BTControls.MOTOR_A_BACKWARD_START);							
 						if (event.getAction() == MotionEvent.ACTION_UP)
-							updateMotorA(false, backwardMotorA);
+							updateMotor(BTControls.MOTOR_A_BACKWARD_STOP);
 						return true;
 					}
 
@@ -70,9 +59,9 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 					@Override
 					public boolean onTouch(View v, MotionEvent event) {
 						if (event.getAction() == MotionEvent.ACTION_DOWN)
-							updateMotorB(forwardMotorB, true);
+							updateMotor(BTControls.MOTOR_B_FORWARD_START);							
 						if (event.getAction() == MotionEvent.ACTION_UP)
-							updateMotorB(forwardMotorB, false);
+							updateMotor(BTControls.MOTOR_B_FORWARD_STOP);							
 						return true;
 					}
 				});
@@ -82,10 +71,11 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 
 					@Override
 					public boolean onTouch(View v, MotionEvent event) {
-						if (event.getAction() == MotionEvent.ACTION_DOWN)
-							updateMotorB(true, backwardMotorB);
+						if (event.getAction() == MotionEvent.ACTION_DOWN)						
+							updateMotor(BTControls.MOTOR_B_BACKWARD_START);
 						if (event.getAction() == MotionEvent.ACTION_UP)
-							updateMotorB(false, backwardMotorB);
+							updateMotor(BTControls.MOTOR_B_BACKWARD_STOP);
+						
 						return true;
 					}
 
@@ -97,9 +87,9 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 					@Override
 					public boolean onTouch(View v, MotionEvent event) {
 						if (event.getAction() == MotionEvent.ACTION_DOWN)
-							updateMotorC(forwardMotorC, true);
+							updateMotor(BTControls.MOTOR_C_FORWARD_START);
 						if (event.getAction() == MotionEvent.ACTION_UP)
-							updateMotorC(forwardMotorC, false);
+							updateMotor(BTControls.MOTOR_C_FORWARD_STOP);
 						return true;
 					}
 				});
@@ -110,9 +100,10 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 					@Override
 					public boolean onTouch(View v, MotionEvent event) {
 						if (event.getAction() == MotionEvent.ACTION_DOWN)
-							updateMotorC(true, backwardMotorC);
+							updateMotor(BTControls.MOTOR_C_BACKWARD_START);
+							
 						if (event.getAction() == MotionEvent.ACTION_UP)
-							updateMotorC(false, backwardMotorC);
+							updateMotor(BTControls.MOTOR_C_BACKWARD_STOP);
 						return true;
 					}
 
@@ -191,54 +182,11 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 		}
 	}
 	
-	public void updateMotorA(boolean forward, boolean backward) {
-		if (isConnected()){
-			if (this.forwardMotorA != forward) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((forward) ? BTControls.MOTOR_A_FORWARD_START
-								: BTControls.MOTOR_A_FORWARD_STOP), 0);
-				this.forwardMotorA = forward;
-			}
-			if (this.backwardMotorA != backward) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((backward) ? BTControls.MOTOR_A_BACKWARD_START
-								: BTControls.MOTOR_A_BACKWARD_STOP), 0);
-				this.backwardMotorA = backward;
-			}
-		}
-	}
-
-	public void updateMotorB(boolean forward, boolean backward) {
-		if (isConnected()){
-			if (this.forwardMotorB != forward) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((forward) ? BTControls.MOTOR_B_FORWARD_START
-								: BTControls.MOTOR_B_FORWARD_STOP), 0);
-				this.forwardMotorB = forward;
-			}
-			if (this.backwardMotorB != backward) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((backward) ? BTControls.MOTOR_B_BACKWARD_START
-								: BTControls.MOTOR_B_BACKWARD_STOP), 0);
-				this.backwardMotorB = backward;
-			}
-		}
-	}
-
-	public void updateMotorC(boolean forward, boolean backward) {
-		if (isConnected()){
-			if (this.forwardMotorC != forward) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((forward) ? BTControls.MOTOR_C_FORWARD_START
-								: BTControls.MOTOR_C_FORWARD_STOP), 0);
-				this.forwardMotorC = forward;
-			}
-			if (this.backwardMotorC != backward) {
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
-						((backward) ? BTControls.MOTOR_C_BACKWARD_START
-								: BTControls.MOTOR_C_BACKWARD_STOP), 0);
-				this.backwardMotorC = backward;
-			}
+	
+	public void updateMotor(int motor_state) {		
+		if (isConnected()){			
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					motor_state, 0);
 		}
 	}
 
