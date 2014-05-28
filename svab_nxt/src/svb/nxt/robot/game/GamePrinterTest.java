@@ -14,12 +14,14 @@ public class GamePrinterTest extends GameTemplateClass{
 		setContentView(R.layout.game_printer_test_layout);				
 	}
 
-	public void doTestDisplay(View view){
+	
+	public void doTest(View view){
 		sendTestContent(true);
 	}
-	public void doTest(View view){
+	public void doTestDisplay(View view){
 		sendTestContent(false);
 	}
+	
 	
 	//NXT 100x60 pixels
 	private void sendTestContent(boolean doPrint){
@@ -29,7 +31,7 @@ public class GamePrinterTest extends GameTemplateClass{
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
 			
 			/*
-			drawLine("1111111111111110");			
+			drawLine("1111111111111110");
 			drawLine("1100000000000110");
 			drawLine("1100110001100110");
 			drawLine("1100110001100110");
