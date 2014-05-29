@@ -86,7 +86,8 @@
 	
 	<!-- PROGRAM PRINT TEST -->
 	<string name="print_test">B/W print test</string>
-	<string name="print_test_display">B/W display test NXT</string>
+	<string name="print_test_display">display test LCD-NXT</string>
+	<string name="print_test_pen_head">pen head test</string>
 	
 	<!-- PROGRAM PRINT FOTO -->
 	

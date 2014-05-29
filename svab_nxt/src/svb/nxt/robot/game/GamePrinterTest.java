@@ -22,6 +22,13 @@ public class GamePrinterTest extends GameTemplateClass{
 		sendTestContent(false);
 	}
 	
+	public void penHeadTest(View view){
+		if (isConnected()){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					BTControls.PEN_DISTANCE_CHECK, 0);
+		}
+	}
+	
 	
 	//NXT 100x60 pixels
 	private void sendTestContent(boolean doPrint){

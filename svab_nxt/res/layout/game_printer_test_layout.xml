@@ -4,30 +4,44 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/button1"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:background="@drawable/my_black_white_selector"
-        android:drawableLeft="@android:drawable/ic_media_play"
-        android:drawablePadding="10dp"
-        android:onClick="doTest"
-        android:padding="10dp"
-        android:text="@string/print_test" />
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
 
-    <Button
-        android:id="@android:id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/button1"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/my_black_white_selector"
-        android:drawableLeft="@android:drawable/ic_media_play"
-        android:drawablePadding="10dp"
-        android:onClick="doTestDisplay"
-        android:padding="10dp"
-        android:text="@string/print_test_display" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/my_black_white_selector"
+            android:drawableLeft="@android:drawable/ic_media_play"
+            android:drawablePadding="10dp"
+            android:onClick="penHeadTest"
+            android:padding="10dp"
+            android:text="@string/print_test_pen_head" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/my_black_white_selector"
+            android:drawableLeft="@android:drawable/ic_media_play"
+            android:drawablePadding="10dp"
+            android:onClick="doTest"
+            android:padding="10dp"
+            android:text="@string/print_test" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/my_black_white_selector"
+            android:drawableLeft="@android:drawable/ic_media_play"
+            android:drawablePadding="10dp"
+            android:onClick="doTestDisplay"
+            android:padding="10dp"
+            android:text="@string/print_test_display" />
+    </LinearLayout>
 
 </RelativeLayout>
