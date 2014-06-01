@@ -4,6 +4,7 @@ import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.logic.GameTemplateClass;
+import android.os.Message;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -208,5 +209,9 @@ public class GameMoveDirectionActivity extends GameTemplateClass{
 				robotType, 0);
 	}
 
-
+	@Override
+	public void recieveMsgFromNxt(Message myMessage) {
+		// TODO Auto-generated method stub
+		
+	}
 }

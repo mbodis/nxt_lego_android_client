@@ -8,9 +8,13 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import svb.lib.log.MyLogger;
 import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTConnectable;
@@ -21,6 +25,7 @@ import svb.nxt.robot.logic.ImageConvertClass;
 import svb.nxt.robot.logic.ImageLog;
 import android.graphics.Bitmap;
 import android.hardware.Camera.Size;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +35,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -50,8 +57,22 @@ public class GamePrintTest2 extends GameTemplateClass implements
 	private boolean doCapture = false;	
 	private Mat capturedImage = null;
 	
+	// view
 	private Button btnCaptureImage, btnSaveFull, btnCanny,
 		btnSaveCrop, btnSendCrop;
+	private ProgressBar progressBar;
+	private TextView progressText;
+	
+	private int part = 0;
+	//TODO USE WAKE LOCK FOR ACTIVITY
+	
+	// 96 * 60 -> NXT display 
+	// * 8 binarnych cisel - max
+	int cX = 12;
+	int cropX = 8*cX;
+	int cropY = 60;
+	
+	int PART_SIZE = 100; 
 	
 	@Override
 	public void setupLayout(){
@@ -107,7 +128,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {	
-				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 100, 60));
+				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 96, 60));
 			}
 		});
 		
@@ -116,39 +137,138 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {
-				//96 * 30 * 8 binarnych cisel - max
-				int cX = 12;
-				int cropX = 8*cX;
-				int cropy = 60;
-				
-				Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropy);
-				StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-				Log.d("SVB", "res: " + sb.toString());
-				
-				
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
-				boolean end_row = false;
-				for (int r=0;r<cropy;r++){
-					for (int i=0;i<cX;i++){
-						int from = r*cropX + i*8;
-						int to = from + 8;
-						byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
-						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-						//String binn = sb.substring(from, to);
-						//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
-						if (end_row){
-							sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-						}
-						end_row = false;
-					}
-					end_row = true;
-				}
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);
+				sendImg();
 			}
 		});
 		
+		progressBar = (ProgressBar) findViewById(android.R.id.progress);
+		progressBar.setProgress(0);
+		
+		progressText = (TextView) findViewById(android.R.id.text1);		
+		
 		toggleBtns();
 	}
+	
+	private void sendImg(){
+		if (isConnected()){
+		
+			int partsTotal = countImageParts(); 
+			
+			if (partsTotal > part){
+				part++;
+				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
+				sendImgPart(part, partsTotal);
+				
+			}else{
+				Toast.makeText(this, "partREQUEST ERR", Toast.LENGTH_SHORT).show();
+			}	
+		}else{
+			Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	private int countImageParts(){
+		
+		Bitmap b = ImageConvertClass.cropImage(this.capturedImage, this.cropX, this.cropY);
+		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
+		int len = sb.toString().length() / 8;
+		int totalParts = len/(this.PART_SIZE) + (((len % (this.PART_SIZE))>0)? 1 : 0);
+		// Log.d("SVB", "totalParts: " + totalParts);
+		
+		return totalParts;		
+	}
+	
+	private void sendImgPart(int part, int partTotal){			
+		
+		Bitmap b = ImageConvertClass.cropImage(this.capturedImage, this.cropX, this.cropY);
+		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
+		//Log.d("SVB", "res: " + sb.toString());		
+		
+		if (part == 1){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
+		}else{
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START_PACKAGE, BTControls.ACTION_PACKAGE_OLD_CONTENT);
+		}		
+		
+		int reading_part = 1;
+		int partSize = 0; 
+		
+		boolean end_row = false;
+		for (int r=0;r<cropY;r++){
+			for (int i=0;i<cX;i++){
+				int from = r*cropX + i*8;
+				int to = from + 8;
+				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
+				
+				partSize++;							
+				
+				if (reading_part == part){
+					// MyLogger.addLog(this, "sending.txt", "part: " + part + " tot:" + partTotal + " reading:" + reading_part + " partSize:" + partSize);
+					updateProgress(part, partTotal);
+					sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
+					
+					// String binn = sb.substring(from, to);
+					// Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
+					if (end_row){
+						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
+					}
+				}
+				
+				if (partSize == PART_SIZE){
+					partSize = 0;
+					reading_part++;
+				}				
+				
+				end_row = false;
+			}
+			end_row = true;
+		}
+		
+		if (partTotal == part){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT_AND_DISPLAY);			
+			// Log.d("SVB", "FILE END");
+		}else{			
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT_AND_DISPLAY);			
+			// Log.d("SVB", "PART END");
+		}
+	}
+	
+	private void updateProgress(int part, int totalParts){		
+		progressText.setText("part: " + part + " / " + totalParts);
+		progressBar.setMax(totalParts);
+		progressBar.setProgress(part);
+	}
+	
+	/*
+	private void sendCropImg(){			
+		int cX = 12;
+		int cropX = 8*cX;
+		int cropY = 60;
+		
+		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
+		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
+		Log.d("SVB", "res: " + sb.toString());		
+		
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
+		boolean end_row = false;
+		for (int r=0;r<cropY;r++){
+			for (int i=0;i<cX;i++){
+				int from = r*cropX + i*8;
+				int to = from + 8;
+				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
+				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
+				//String binn = sb.substring(from, to);
+				//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
+				if (end_row){
+					sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
+				}
+				end_row = false;
+			}
+			end_row = true;
+		}
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);	
+	}
+	*/
 	
 	private void toggleBtns() {
 		int show = (doCapture==false) ? View.GONE : View.VISIBLE; 
@@ -222,6 +342,12 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		}
 		
 		Mat src = inputFrame.rgba();
+		
+		Point pt1 = new Point(0, 0);
+		Point pt2 = new Point(96, 60);
+		Core.rectangle(src, pt1, pt2, new Scalar(255,
+				255, 255), 1, 1, 0);
+		
 		if (doCapture){
 			Log.d("SSS", "doCapture = true");
 			doCapture = false;
@@ -231,6 +357,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			return capturedImage;
 		}
 			
+		
 		
 		return src;
 	}
@@ -310,4 +437,20 @@ public class GamePrintTest2 extends GameTemplateClass implements
 				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST_2, 0);		
 	}
 
+	@Override
+	public void recieveMsgFromNxt(Message myMessage) {
+		int type = myMessage.getData().getInt("message");
+		//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();	
+		
+		switch(type){
+			case BTControls.FILE_NEW_PACKAGE_REQUEST:				
+				sendImg();
+				break;
+			
+			default:
+				//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
+				break;
+		}
+		
+	}
 }

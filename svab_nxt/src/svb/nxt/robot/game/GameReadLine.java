@@ -6,6 +6,7 @@ import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.logic.GameTemplateClass;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ImageView;
@@ -80,6 +81,12 @@ public class GameReadLine extends GameTemplateClass{
 				robotType, 0);
 		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
 				BTControls.LIGHT_SET_MAX, blackLimit);
+	}
+	
+	@Override
+	public void recieveMsgFromNxt(Message myMessage) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

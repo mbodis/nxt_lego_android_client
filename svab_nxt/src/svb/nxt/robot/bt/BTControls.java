@@ -77,14 +77,30 @@ public class BTControls {
 	
 	/**
 	 * PRINTER
-	 */
-	public static final int FILE_PAUSE = 53;
-	public static final int FILE_RESUME = 54;
-	public static final int FILE_START = 55;
+	 */	
+	public static final int FILE_NEW_PACKAGE_REQUEST = 50;
+	
+	public static final int FILE_START = 55; 	
+	public static final int FILE_START_PACKAGE = 53;
+	public static final int ACTION_PACKAGE_OLD_CONTENT = 3;
+	public static final int ACTION_PACKAGE_NEW_CONTENT = 4;
+	
 	public static final int FILE_END = 56;
+	public static final int FILE_END_PACKAGE = 54;
+	public static final int ACTION_PRINT = 0;
+	public static final int ACTION_DISPLAY = 1;
+	public static final int ACTION_PRINT_AND_DISPLAY = 2;
+		
 	public static final int FILE_NEW_LINE = 57;
 	public static final int FILE_DATA = 58;
-	public static final int PEN_DISTANCE_CHECK = 59;
+	
+	public static final int PEN_DISTANCE_CHECK = 60;
+	public static final int PEN_UP = 61;
+	public static final int PEN_DOWN = 62;
+	
+	
+	
 	
 	
 }
+

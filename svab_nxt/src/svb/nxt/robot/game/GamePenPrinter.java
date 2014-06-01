@@ -22,6 +22,7 @@ import svb.nxt.robot.logic.ImageLog;
 import android.graphics.Bitmap;
 import android.graphics.LinearGradient;
 import android.hardware.Camera.Size;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -368,4 +369,9 @@ public class GamePenPrinter extends GameTemplateClass implements
 				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST, 0);		
 	}
 
+	@Override
+	public void recieveMsgFromNxt(Message myMessage) {
+		// TODO Auto-generated method stub
+		
+	}
 }

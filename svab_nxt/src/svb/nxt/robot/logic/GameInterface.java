@@ -1,5 +1,7 @@
 package svb.nxt.robot.logic;
 
+import android.os.Message;
+
 public interface GameInterface {
 
 	/**
@@ -15,4 +17,6 @@ public interface GameInterface {
 	 */
 	public abstract void onConnectToDevice();
 
+	
+	public abstract void recieveMsgFromNxt(Message myMessage);
 }

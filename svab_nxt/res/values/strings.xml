@@ -85,9 +85,13 @@
 	<string name="motor_acceleration">Acceleration: </string>
 	
 	<!-- PROGRAM PRINT TEST -->
-	<string name="print_test">B/W print test</string>
-	<string name="print_test_display">display test LCD-NXT</string>
-	<string name="print_test_pen_head">pen head test</string>
+	<string name="print_test">print+display</string>
+	<string name="print_test_display">display</string>
+	<string name="print_test_pen_head">DOWN + UP</string>
+	<string name="print_test_pen_head_down">DOWN</string>
+	<string name="print_test_pen_head_up">UP</string>
+	<string name="print_test_set_pen_head">set pen head</string>
+	
 	
 	<!-- PROGRAM PRINT FOTO -->
 	

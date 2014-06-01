@@ -6,6 +6,7 @@ import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.logic.GameTemplateClass;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -199,4 +200,9 @@ public class GameMoveMotorActivity extends GameTemplateClass{
 				robotType, 0);
 	}
 
+	@Override
+	public void recieveMsgFromNxt(Message myMessage) {
+		// TODO Auto-generated method stub
+		
+	}
 }

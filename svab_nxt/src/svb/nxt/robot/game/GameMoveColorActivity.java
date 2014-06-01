@@ -20,6 +20,7 @@ import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.ArrowClass;
 import svb.nxt.robot.logic.GameTemplateClass;
 import android.hardware.Camera.Size;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -319,4 +320,9 @@ public class GameMoveColorActivity extends GameTemplateClass implements
 				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_MOVE_OPEN_CV_COLOR, 0);		
 	}
 
+	@Override
+	public void recieveMsgFromNxt(Message myMessage) {
+		// TODO Auto-generated method stub
+		
+	}
 }

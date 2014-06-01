@@ -50,7 +50,7 @@ public class BTCommunicator extends Thread {
     public static final int DO_BEEP = 51;
     public static final int DO_ACTION = 52;    
     public static final int GAME_TYPE = 53; //SVB
-    public static final int ROBOT_TYPE = 54; //SVB
+    public static final int ROBOT_TYPE = 54; //SVB    
     public static final int READ_MOTOR_STATE = 60;
     public static final int GET_FIRMWARE_VERSION = 70;
     public static final int DISCONNECT = 99;
@@ -69,7 +69,7 @@ public class BTCommunicator extends Thread {
     public static final int GET_PROGRAM_NAME = 1010;
     public static final int PROGRAM_NAME = 1011;
     public static final int SAY_TEXT = 1030;
-    public static final int VIBRATE_PHONE = 1031;
+    public static final int VIBRATE_PHONE = 1031;    
 
     public static final int NO_DELAY = 0;
 
@@ -285,6 +285,7 @@ public class BTCommunicator extends Thread {
     }
 
     private void dispatchMessage(byte[] message) {
+    	Log.d("SVB", "msg: " + message[1]);
         switch (message[1]) {
 
             case LCPMessage.GET_OUTPUT_STATE:
@@ -325,11 +326,19 @@ public class BTCommunicator extends Thread {
                 if (message.length == 22) {
                     sendState(SAY_TEXT);
                 }
+                break;
                 
             case LCPMessage.VIBRATE_PHONE:
                 if (message.length == 3) {
                     sendState(VIBRATE_PHONE);
-                }                                
+                }
+                break;
+                
+            case LCPMessage.FILE_NEXT_PART:
+                if (message.length == 2 || message.length == 3) {
+                    sendState(BTControls.FILE_NEW_PACKAGE_REQUEST);
+                }    
+                break;
         }
     }
 

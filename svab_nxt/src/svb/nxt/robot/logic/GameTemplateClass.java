@@ -264,91 +264,95 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 	final Handler myHandler = new Handler() {
 		@Override
 		public void handleMessage(Message myMessage) {
-			switch (myMessage.getData().getInt("message")) {
-			case BTCommunicator.DISPLAY_TOAST:
-				Toast.makeText(thisActivity,
-						myMessage.getData().getString("toastText"),
-						Toast.LENGTH_SHORT).show();
-				break;
-			case BTCommunicator.STATE_CONNECTED:
-				connected = true;
-				connectingProgressDialog.dismiss();
-				updateButtonsAndMenu();
-				sendBTCmessage(BTCommunicator.NO_DELAY,
-						BTCommunicator.GET_FIRMWARE_VERSION, 0, 0);
-				sendBTCmessage(BTCommunicator.NO_DELAY,
-						BTCommunicator.ROBOT_TYPE,
-						robotType, 0);
-				onConnectToDevice();
-				
-				break;
-			case BTCommunicator.MOTOR_STATE:
-
-				if (myBTCommunicator != null) {
-					byte[] motorMessage = myBTCommunicator.getReturnMessage();
-					int position = byteToInt(motorMessage[21])
-							+ (byteToInt(motorMessage[22]) << 8)
-							+ (byteToInt(motorMessage[23]) << 16)
-							+ (byteToInt(motorMessage[24]) << 24);
+			
+			recieveMsgFromNxt(myMessage);
+			
+			switch (myMessage.getData().getInt("message")) {				
+			
+				case BTCommunicator.DISPLAY_TOAST:
 					Toast.makeText(thisActivity,
-							getString(R.string.current_position),
+							myMessage.getData().getString("toastText"),
 							Toast.LENGTH_SHORT).show();
-				}
-
-				break;
-
-			case BTCommunicator.STATE_CONNECTERROR_PAIRING:
-				connectingProgressDialog.dismiss();
-				destroyBTCommunicator();
-				break;
-
-			case BTCommunicator.STATE_CONNECTERROR:
-				connectingProgressDialog.dismiss();
-			case BTCommunicator.STATE_RECEIVEERROR:
-			case BTCommunicator.STATE_SENDERROR:
-
-				destroyBTCommunicator();
-				if (isBtErrorPending() == false) {
-					setBtErrorPending(true);
-					// inform the user of the error with an AlertDialog
-					DialogFragment ad = ErrorBtDialog.newInstance();
-					ad.show(getFragmentManager(), ErrorBtDialog.TAG);					
-				}
-
-				break;
-
-			case BTCommunicator.FIRMWARE_VERSION:
-
-				if (myBTCommunicator != null) {
-					byte[] firmwareMessage = myBTCommunicator
-							.getReturnMessage();
-					// check if we know the firmware
-					boolean isLejosMindDroid = true;
-					for (int pos = 0; pos < 4; pos++) {
-						if (firmwareMessage[pos + 3] != LCPMessage.FIRMWARE_VERSION_LEJOSMINDDROID[pos]) {
-							isLejosMindDroid = false;
-							break;
-						}
-					}
-					if (isLejosMindDroid) {
-						//do something
-					}
-					// afterwards we search for all files on the robot
+					break;
+				case BTCommunicator.STATE_CONNECTED:
+					connected = true;
+					connectingProgressDialog.dismiss();
+					updateButtonsAndMenu();
 					sendBTCmessage(BTCommunicator.NO_DELAY,
-							BTCommunicator.FIND_FILES, 0, 0);
-				}
-
-				break;
-
-			case BTCommunicator.VIBRATE_PHONE:
-				if (myBTCommunicator != null) {
-					byte[] vibrateMessage = myBTCommunicator.getReturnMessage();
-					Vibrator myVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-					myVibrator.vibrate(vibrateMessage[2] * 10);
-				}
-
-				break;
-			}
+							BTCommunicator.GET_FIRMWARE_VERSION, 0, 0);
+					sendBTCmessage(BTCommunicator.NO_DELAY,
+							BTCommunicator.ROBOT_TYPE,
+							robotType, 0);
+					onConnectToDevice();
+					
+					break;
+				case BTCommunicator.MOTOR_STATE:
+	
+					if (myBTCommunicator != null) {
+						byte[] motorMessage = myBTCommunicator.getReturnMessage();
+						int position = byteToInt(motorMessage[21])
+								+ (byteToInt(motorMessage[22]) << 8)
+								+ (byteToInt(motorMessage[23]) << 16)
+								+ (byteToInt(motorMessage[24]) << 24);
+						Toast.makeText(thisActivity,
+								getString(R.string.current_position),
+								Toast.LENGTH_SHORT).show();
+					}
+	
+					break;
+	
+				case BTCommunicator.STATE_CONNECTERROR_PAIRING:
+					connectingProgressDialog.dismiss();
+					destroyBTCommunicator();
+					break;
+	
+				case BTCommunicator.STATE_CONNECTERROR:
+					connectingProgressDialog.dismiss();
+				case BTCommunicator.STATE_RECEIVEERROR:
+				case BTCommunicator.STATE_SENDERROR:
+	
+					destroyBTCommunicator();
+					if (isBtErrorPending() == false) {
+						setBtErrorPending(true);
+						// inform the user of the error with an AlertDialog
+						DialogFragment ad = ErrorBtDialog.newInstance();
+						ad.show(getFragmentManager(), ErrorBtDialog.TAG);					
+					}
+	
+					break;
+	
+				case BTCommunicator.FIRMWARE_VERSION:
+	
+					if (myBTCommunicator != null) {
+						byte[] firmwareMessage = myBTCommunicator
+								.getReturnMessage();
+						// check if we know the firmware
+						boolean isLejosMindDroid = true;
+						for (int pos = 0; pos < 4; pos++) {
+							if (firmwareMessage[pos + 3] != LCPMessage.FIRMWARE_VERSION_LEJOSMINDDROID[pos]) {
+								isLejosMindDroid = false;
+								break;
+							}
+						}
+						if (isLejosMindDroid) {
+							//do something
+						}
+						// afterwards we search for all files on the robot
+						sendBTCmessage(BTCommunicator.NO_DELAY,
+								BTCommunicator.FIND_FILES, 0, 0);
+					}
+	
+					break;
+	
+				case BTCommunicator.VIBRATE_PHONE:
+					if (myBTCommunicator != null) {
+						byte[] vibrateMessage = myBTCommunicator.getReturnMessage();
+						Vibrator myVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+						myVibrator.vibrate(vibrateMessage[2] * 10);
+					}
+	
+					break;
+				}			
 		}
 	};
 

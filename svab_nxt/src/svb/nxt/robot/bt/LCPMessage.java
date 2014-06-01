@@ -66,6 +66,7 @@ public class LCPMessage {
     public static final byte ACTION_BUTTON = 0x32;        
     public static final byte GAME_TYPE = 0x33;//SVB
     public static final byte ROBOT_TYPE = 0x34;//SVB
+    public static final byte FILE_NEXT_PART = 0x35;//SVB
     
     // System Commands:
     public static final byte OPEN_READ = (byte)0x80;
