@@ -20,7 +20,6 @@ import svb.nxt.robot.logic.GameTemplateClass;
 import svb.nxt.robot.logic.ImageConvertClass;
 import svb.nxt.robot.logic.ImageLog;
 import android.graphics.Bitmap;
-import android.graphics.LinearGradient;
 import android.hardware.Camera.Size;
 import android.os.Message;
 import android.util.Log;
