@@ -14,7 +14,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import svb.lib.log.MyLogger;
 import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTConnectable;
@@ -35,11 +34,20 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
+/**
+ * 1) odfotit
+ * 2) prevedenie do C/B pomocou canny operatora - zobrazia sa hrany
+ * 3a) - moznost tlacit img 96x60 naraz
+ * 3b) - moznost tlacit img 96x60 posielat po castiach
+ * 
+ * @author svab
+ *
+ */
 public class GamePrintTest2 extends GameTemplateClass implements
 		CvCameraViewListener2, BTConnectable {
 	
@@ -54,14 +62,17 @@ public class GamePrintTest2 extends GameTemplateClass implements
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
 	
-	private boolean doCapture = false;	
+	private boolean doCapture = false;
+	private boolean sendImg = false;
+	private boolean img_blackAndWhite = false; 
 	private Mat capturedImage = null;
 	
 	// view
 	private Button btnCaptureImage, btnSaveFull, btnCanny,
-		btnSaveCrop, btnSendCrop;
+		btnSaveCrop, btnSendCrop, btnSendFull;
 	private ProgressBar progressBar;
 	private TextView progressText;
+	private LinearLayout ll_progress;
 	
 	private int part = 0;
 	//TODO USE WAKE LOCK FOR ACTIVITY
@@ -82,8 +93,10 @@ public class GamePrintTest2 extends GameTemplateClass implements
 
 		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
 		
+		
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
+		ll_progress = (LinearLayout) findViewById(R.id.ll_progress);
 		
 		btnCaptureImage = (Button) findViewById(R.id.btnCapture);
 		btnCaptureImage.setOnClickListener(new OnClickListener() {
@@ -93,12 +106,13 @@ public class GamePrintTest2 extends GameTemplateClass implements
 				btnCaptureImage.setText((capturedImage == null)? "reset" : "capture");
 				if (capturedImage!=null){
 					capturedImage = null;
-					toggleBtns();
+					sendImg = false;
+					img_blackAndWhite = false;
+					toggleBtns(false);
 					return;
-				}				
-				
+				}								
 				doCapture = true;
-				toggleBtns();
+				toggleBtns(true);
 			}
 
 		});
@@ -118,6 +132,8 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {	
 				if (capturedImage != null){
+					img_blackAndWhite = true;
+					toggleBtns(true);
 					Imgproc.Canny(capturedImage, capturedImage, 20, 120);
 				}
 			}
@@ -140,18 +156,29 @@ public class GamePrintTest2 extends GameTemplateClass implements
 				sendImg();
 			}
 		});
+		btnSendFull = (Button) findViewById(R.id.btnSendFull);
+		btnSendFull.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				sendFullImg();
+			}
+		});
 		
 		progressBar = (ProgressBar) findViewById(android.R.id.progress);
 		progressBar.setProgress(0);
 		
-		progressText = (TextView) findViewById(android.R.id.text1);		
+		progressText = (TextView) findViewById(android.R.id.text1);
+		ll_progress = (LinearLayout) findViewById(R.id.ll_progress);
 		
-		toggleBtns();
+		toggleBtns(false);
 	}
 	
 	private void sendImg(){
 		if (isConnected()){
-		
+			sendImg = true;
+			toggleBtns(true);
+			
 			int partsTotal = countImageParts(); 
 			
 			if (partsTotal > part){
@@ -187,7 +214,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		if (part == 1){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
 		}else{
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START_PACKAGE, BTControls.ACTION_PACKAGE_OLD_CONTENT);
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START_PACKAGE, BTControls.ACTION_PACKAGE_NEW_CONTENT);
 		}		
 		
 		int reading_part = 1;
@@ -225,10 +252,10 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		}
 		
 		if (partTotal == part){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT_AND_DISPLAY);			
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT);			
 			// Log.d("SVB", "FILE END");
 		}else{			
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT_AND_DISPLAY);			
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT);			
 			// Log.d("SVB", "PART END");
 		}
 	}
@@ -239,43 +266,51 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		progressBar.setProgress(part);
 	}
 	
-	/*
-	private void sendCropImg(){			
-		int cX = 12;
-		int cropX = 8*cX;
-		int cropY = 60;
-		
-		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
-		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-		Log.d("SVB", "res: " + sb.toString());		
-		
-		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
-		boolean end_row = false;
-		for (int r=0;r<cropY;r++){
-			for (int i=0;i<cX;i++){
-				int from = r*cropX + i*8;
-				int to = from + 8;
-				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-				//String binn = sb.substring(from, to);
-				//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
-				if (end_row){
-					sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-				}
-				end_row = false;
-			}
-			end_row = true;
-		}
-		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);	
-	}
-	*/
 	
-	private void toggleBtns() {
-		int show = (doCapture==false) ? View.GONE : View.VISIBLE; 
+	private void sendFullImg(){		
+		if (isConnected()){
+									
+			int cX = 12;
+			int cropX = 8*cX;
+			int cropY = 60;
+			
+			Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
+			StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
+			Log.d("SVB", "res: " + sb.toString());		
+			
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
+			boolean end_row = false;
+			for (int r=0;r<cropY;r++){
+				for (int i=0;i<cX;i++){
+					int from = r*cropX + i*8;
+					int to = from + 8;
+					byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
+					sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
+					//String binn = sb.substring(from, to);
+					//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
+					if (end_row){
+						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
+					}
+					end_row = false;
+				}
+				end_row = true;
+			}
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT_AND_DISPLAY);	
+		}else{
+			Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
+		}
+	}	
+	
+	private void toggleBtns(boolean imageCaptured) {
+		int show = (imageCaptured) ? View.VISIBLE : View.GONE; 
 		btnSaveFull.setVisibility(show);
 		btnCanny.setVisibility(show);
 		btnSaveCrop.setVisibility(show);
-		btnSendCrop.setVisibility(show);
+		
+		btnSendCrop.setVisibility((img_blackAndWhite==false) ? View.GONE : View.VISIBLE);
+		btnSendFull.setVisibility((img_blackAndWhite==false) ? View.GONE : View.VISIBLE);
+		 
+		ll_progress.setVisibility((sendImg) ? View.VISIBLE: View.GONE ); 
 	}
 	
 
@@ -343,15 +378,15 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		
 		Mat src = inputFrame.rgba();
 		
-		Point pt1 = new Point(0, 0);
-		Point pt2 = new Point(96, 60);
-		Core.rectangle(src, pt1, pt2, new Scalar(255,
-				255, 255), 1, 1, 0);
-		
 		if (doCapture){
 			Log.d("SSS", "doCapture = true");
 			doCapture = false;
 			capturedImage = src;			
+		}else{
+			Point pt1 = new Point(0, 0);
+			Point pt2 = new Point(96, 60);
+			Core.rectangle(src, pt1, pt2, new Scalar(255,
+					255, 255), 1, 1, 0);
 		}
 		if (capturedImage != null){
 			return capturedImage;

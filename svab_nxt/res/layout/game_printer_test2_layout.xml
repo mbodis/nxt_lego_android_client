@@ -10,12 +10,16 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout1"
+    <ScrollView 
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:background="@android:color/white"
+        android:id="@+id/linearLayout1">
+    <LinearLayout
+        
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"        
         android:orientation="vertical" >
 
         <Button
@@ -45,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:drawableLeft="@android:drawable/ic_menu_save"
-            android:text="saveImg-crop96x60"
+            android:text="save 96x60"
             android:visibility="visible" />
 
         <Button
@@ -53,17 +57,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:drawableLeft="@android:drawable/ic_menu_send"
-            android:text="sendIMG-crop96x60"
+            android:text="send-parts"
+            android:visibility="visible" />
+        <Button
+            android:id="@+id/btnSendFull"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@android:drawable/ic_menu_send"
+            android:text="sned-together"
             android:visibility="visible" />
     </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
+        android:id="@+id/ll_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/linearLayout1"
         android:background="@android:color/white"
-        android:orientation="vertical" >
+        android:orientation="vertical" 
+        android:padding="10dp">
 
         <TextView
             android:id="@android:id/text1"

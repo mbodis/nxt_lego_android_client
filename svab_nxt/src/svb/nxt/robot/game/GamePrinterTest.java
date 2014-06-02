@@ -8,6 +8,13 @@ import android.os.Message;
 import android.view.View;
 import android.widget.Toast;
 
+/**
+ * konfiguracia talciarne 
+ * - nastavenie hlavice na pisanie 
+ * - vytlacenie testovacieho oberazku
+ * @author svab
+ *
+ */
 public class GamePrinterTest extends GameTemplateClass{
 
 	@Override
@@ -126,19 +133,9 @@ public class GamePrinterTest extends GameTemplateClass{
 	
 	@Override
 	public void recieveMsgFromNxt(Message myMessage) {
-			
-		int type = myMessage.getData().getInt("message");
-		
-		switch(type){
-			case BTControls.FILE_NEW_PACKAGE_REQUEST:
-				Toast.makeText(this, "MSG - REQUEST next part", Toast.LENGTH_SHORT).show();
-				break;
-			
-			default:
-				//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
-				break;
-		}
-		
+		// nope
+		//int type = myMessage.getData().getInt("message");
+		//Toast.makeText(this, "message type: " + type, Toast.LENGTH_SHORT).show();						
 	}
 	
 	
@@ -150,7 +147,5 @@ public class GamePrinterTest extends GameTemplateClass{
 				BTCommunicator.ROBOT_TYPE,
 				robotType, 0);
 	}
-
-
 
 }

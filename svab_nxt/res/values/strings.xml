@@ -43,8 +43,8 @@
     <!-- HELP DIALOGS -->
     <string name="help_robot_tribot">Default known basic robot.\n\n Connection setup:\n - claws motor A\n - left motor B\n - right motor C \n\n - touch sensor - port1 \n - sound sensor - port2 \n - light sensor - port3 \n - ultrasonic sensor - port4</string>
     <string name="help_robot_segway">Two wheels balance robot.\n\n Connection setup:\n - left motor B\n - right motor C \n\n - gyroscope sensor port 1</string>
-    <string name="help_robot_lejos">Not specific type of robot. Good for new or temporary projcets for testing.</string>
-    <string name="help_robot_printer">This robot allows to print on white paper size A4. \n\n Connection setup:\n - motor A move paper\n - motor B X-axis\n - motor C Y-axis</string>
+    <string name="help_robot_lejos">Not specific type of robot. Good for new or temporary projects for testing.</string>
+    <string name="help_robot_printer">This robot allows to print on white paper size A4. \n\n Connection setup:\n - motor A move paper\n - motor B X-axis\n - motor C Y-axis\n\n S1 - touch sensor</string>
 	
     
 	

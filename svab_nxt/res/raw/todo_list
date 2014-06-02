@@ -1,9 +1,13 @@
 TODO LIST:
+
 - pen printer
-	- GUI b&w, canny, set size
+	- GUI: capture, canny, b&w (+progress), set sizeXY, print 
+	- printing progress
+		
 - drill printer 
-	- bt prenos fotky progress
-	- GUI grayscale, set size 
+	- printing progress
+	- GUI: capture img grayscale, progress - set trashhold, set sizeXY, print
+	- zohnat vrtak 
 
 NEW FEATURES:
 - spravit list prikazov kt. robot vykonava(moznost ich dragovanim prenasat)
