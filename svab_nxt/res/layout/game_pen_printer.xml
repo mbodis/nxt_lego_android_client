@@ -1,7 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    tools:context=".game.GamePrintTest2" >
 
     <svb.nxt.robot.game.opencv.OpenCVColorView
         android:id="@+id/tutorial3_activity_java_surface_view"
@@ -9,120 +10,141 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <LinearLayout
+    <ScrollView
+        android:id="@+id/linearLayout1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentRight="true"
-        android:background="@android:color/white"
-        android:orientation="vertical" >
-
-        <Button
-            android:id="@+id/btnCapture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@android:drawable/ic_menu_camera"
-            android:text="caputre" />
+        android:background="@android:color/white" >
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:weightSum="1" >
+            android:orientation="vertical" >
 
             <Button
-                android:id="@+id/btnCanny"
-                android:layout_width="0dp"
+                android:id="@+id/btnCapture"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="Edge-canny"
-                android:visibility="visible" />
+                android:drawableLeft="@android:drawable/ic_menu_camera"
+                android:text="caputre" />
 
-            <Button
-                android:id="@+id/btnimg2BW"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:id="@+id/ll_crop_name"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="img2BW"
-                android:visibility="visible" />
+                android:orientation="horizontal"
+                android:weightSum="1" >
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="Set X"
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="Set Y"
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_crop_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="1" >
+
+                <EditText
+                    android:id="@+id/cropX"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:ems="10"
+                    android:inputType="number"
+                    android:text="96" />
+
+                <EditText
+                    android:id="@+id/cropY"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:ems="10"
+                    android:inputType="number"
+                    android:text="60" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="1" >
+
+                <Button
+                    android:id="@+id/btnCanny"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="Edge-canny"
+                    android:visibility="visible" />
+
+                <Button
+                    android:id="@+id/btnThreshold"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="B / W"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/bw_threshold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="255"
+                android:progress="0" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal" >
+
+                <Button
+                    android:id="@+id/btnSendCrop"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:drawableLeft="@android:drawable/ic_menu_send"
+                    android:text="send"
+                    android:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/ll_progress"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:background="@android:color/white"
+                    android:orientation="vertical"
+                    android:padding="10dp" >
+
+                    <TextView
+                        android:id="@android:id/text1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                    <ProgressBar
+                        android:id="@android:id/progress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:weightSum="1" >
-
-            <Button
-                android:id="@+id/btnInverse"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:drawableLeft="@android:drawable/ic_menu_rotate"
-                android:text="inverse"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/btnSave"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:drawableLeft="@android:drawable/ic_menu_save"
-                android:text="saveImg"
-                android:visibility="visible" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/ll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:weightSum="1" >
-
-            <TextView                
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="width"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:visibility="visible" />
-
-            <TextView                
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="height"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:visibility="visible" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:weightSum="1" >
-
-            <EditText
-                android:id="@+id/iWidth"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:inputType="number"
-                android:text="100"
-                android:visibility="visible" />
-
-            <EditText
-                android:id="@+id/iHeight"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:inputType="number"
-                android:text="60"
-                android:visibility="visible" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/btnSend"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@android:drawable/ic_menu_send"
-            android:text="send2NXT"
-            android:visibility="visible" />
-    </LinearLayout>
+    </ScrollView>
 
 </RelativeLayout>

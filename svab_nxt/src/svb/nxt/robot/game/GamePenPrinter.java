@@ -8,7 +8,10 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import svb.nxt.robot.R;
@@ -17,11 +20,11 @@ import svb.nxt.robot.bt.BTConnectable;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.GameTemplateClass;
-import svb.nxt.robot.logic.img.ImageConvertClass;
-import svb.nxt.robot.logic.img.ImageLog;
-import android.graphics.Bitmap;
+import svb.nxt.robot.logic.PenPrinterHelper;
 import android.hardware.Camera.Size;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,15 +36,21 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 import android.widget.Toast;
 
-
+/**
+ * TODO
+ * @author svab
+ *
+ */
 public class GamePenPrinter extends GameTemplateClass implements
 		CvCameraViewListener2, BTConnectable {
 	
-	/**
-	 * IMAGE PROCESSING
-	 */
+	// image processing
 	private static final String TAG = "GamePrintFoto::Activity";
 	private OpenCVColorView mOpenCvCameraView;
 	private List<Size> mResolutionList;
@@ -50,16 +59,28 @@ public class GamePenPrinter extends GameTemplateClass implements
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
 	
-	private boolean doCapture = false;	
-	private boolean img_is_BW = false;	
+	// printer customize
+	private boolean doCapture = false;
+	private boolean sendImg = false;
+	private boolean BWcanny = false; 
+	private boolean BWtrashold = false;
 	private Mat capturedImage = null;
+	private Mat printImage = null; // capture img + sqare area
+	private int part = 0;
 	
-	private Button btnCaptureImage, 
-		btnCanny, btnimg2BW,
-		invertBtn, btnSave, 
-		btnSend;
-	private EditText iWidth, iHeighText;
-	private LinearLayout ll;
+	// view
+	private Button btnCaptureImage, btnCanny, btnThreshold,
+		btnSendCrop;
+	private SeekBar bw_threshold;
+	private ProgressBar progressBar;
+	private TextView progressText;
+	private LinearLayout ll_progress;
+	private EditText editX, editY;
+	
+	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
+	int cropX = 8*12; // default size
+	int cropY = 60;	// default size
+	int PART_SIZE = 100; 
 	
 	@Override
 	public void setupLayout(){
@@ -68,10 +89,14 @@ public class GamePenPrinter extends GameTemplateClass implements
 		setContentView(R.layout.game_pen_printer);
 
 		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
-		
+				
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		
+		ll_progress = (LinearLayout) findViewById(R.id.ll_progress);		
+		progressText = (TextView) findViewById(android.R.id.text1);		
+		progressBar = (ProgressBar) findViewById(android.R.id.progress);
+		progressBar.setProgress(0);
+				
 		btnCaptureImage = (Button) findViewById(R.id.btnCapture);
 		btnCaptureImage.setOnClickListener(new OnClickListener() {
 			
@@ -80,140 +105,162 @@ public class GamePenPrinter extends GameTemplateClass implements
 				btnCaptureImage.setText((capturedImage == null)? "reset" : "capture");
 				if (capturedImage!=null){
 					capturedImage = null;
-					img_is_BW = false;
-					toggleBtns();
+					sendImg = false;
+					BWcanny = false;
+					BWtrashold = false;
+					toggleViews(false);
 					return;
-				}				
-				
+				}								
 				doCapture = true;
-				toggleBtns();
+				toggleViews(true);
 			}
 
-		});
+		});					
 		btnCanny = (Button) findViewById(R.id.btnCanny);
 		btnCanny.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {	
 				if (capturedImage != null){
-					
+					BWcanny = true;
+					toggleViews(true);
 					Imgproc.Canny(capturedImage, capturedImage, 20, 120);
-					
-					img_is_BW = true;
-					toggleBtns();
-				}
-			}
-		});
-		btnimg2BW = (Button) findViewById(R.id.btnimg2BW);
-		btnimg2BW.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (capturedImage != null){			
-					// TODO
-//					img_is_BW = true;
-//					toggleBtns();
-					Toast.makeText(GamePenPrinter.this, "TODO", Toast.LENGTH_SHORT).show();
-				}								
-			}
-		});	
-		btnSave = (Button) findViewById(R.id.btnSave);
-		btnSave.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (capturedImage != null){			
-					ImageLog.saveImageToFile(GamePenPrinter.this, ImageConvertClass.matToBitmap(capturedImage));
-				}								
-			}
-		});		
-		
-		
-		invertBtn = (Button) findViewById(R.id.btnInverse);
-		invertBtn.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {	
-				if (capturedImage != null){
-					try{
-//						capturedImage = ImageConvertClass.invertBWImage(capturedImage);
-					}catch(Exception ex){
-						Toast.makeText(thisActivity, "err: " + ex.getMessage(), 
-								Toast.LENGTH_LONG).show();
-					}
+					updateImgArea();
 				}
 			}
 		});
 		
-		btnSend = (Button) findViewById(R.id.btnSend);
-		btnSend.setOnClickListener(new OnClickListener() {
+		btnThreshold = (Button) findViewById(R.id.btnThreshold);
+		btnThreshold.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				//96 * 30 * 8 binarnych cisel - max
-				int cX = 12;
-				int cropX = 8*cX;
-				int cropy = 60;
-				
-				Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropy);
-				StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-				Log.d("SVB", "res: " + sb.toString());
-				
-				
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, 0);
-				boolean end_row = false;
-				for (int r=0;r<cropy;r++){
-					for (int i=0;i<cX;i++){
-						int from = r*cropX + i*8;
-						int to = from + 8;
-						byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
-						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-						//String binn = sb.substring(from, to);
-						//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
-						if (end_row){
-							sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-						}
-						end_row = false;
-					}
-					end_row = true;
-				}
-				sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, 0);
+				BWtrashold = true;
+				toggleViews(true);
+				// TODO SOMTHING ELSE
+				Imgproc.Canny(capturedImage, capturedImage, 20, 120);
+				updateImgArea();
 			}
 		});
-		iWidth  = (EditText) findViewById(R.id.iWidth);
-		iHeighText = (EditText) findViewById(R.id.iHeight);
-		ll = (LinearLayout) findViewById(R.id.ll);
 		
-		toggleBtns();
+		bw_threshold = (SeekBar) findViewById(R.id.bw_threshold);
+		bw_threshold.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {										
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {				
+			}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				Log.d("SVB", "progress: " + progress);
+				// TODO SOMTHING ELSE
+				
+				updateImgArea();
+			}
+		});
+				
+		TextWatcher tv = new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				updateImgArea();				
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s) {				
+			}
+		};
+		editX = (EditText) findViewById(R.id.cropX);
+		editX.addTextChangedListener(tv);
+		editY = (EditText) findViewById(R.id.cropY);
+		editY.addTextChangedListener(tv);
 		
+		btnSendCrop = (Button) findViewById(R.id.btnSendCrop);
+		btnSendCrop.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (cropX % 8 != 0){
+					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropX%8), Toast.LENGTH_SHORT).show();
+				}else{
+					sendImgPart();
+				}
+			}
+		});			
+		
+		toggleViews(false);
 	}
 	
-	private void toggleBtns() {
-		
-		int show = (doCapture==false) ? View.GONE : View.VISIBLE;
-//		int show = (capturedImage==null)? View.GONE : View.VISIBLE;
-		
-		btnCanny.setVisibility(show);
-		btnimg2BW.setVisibility(show);
-		
-		invertBtn.setVisibility(show);
-		btnSave.setVisibility(show);
-		
-		iWidth.setVisibility(show);
-		iHeighText.setVisibility(show);
-		
-		btnSend.setVisibility(show);
-		
-		if (!img_is_BW){
-			invertBtn.setVisibility(View.GONE);
-			btnSave.setVisibility(View.GONE);
-			iWidth.setVisibility(View.GONE);
-			iHeighText.setVisibility(View.GONE);
-			ll.setVisibility(View.GONE);
-			btnSend.setVisibility(View.GONE);
+	private void updateImgArea(){
+		if (editX.getText().length() == 0){
+			cropX = 0;
+		}else{
+			cropX = Integer.parseInt(editX.getText().toString().trim());
 		}
 		
+		if (editY.getText().length() == 0){
+			cropY = 0;
+		}else{
+			cropY = Integer.parseInt(editY.getText().toString().trim());
+		}
+		
+		if (capturedImage != null){
+			printImage = capturedImage.clone();
+		}
+	}
+	
+	private void sendImgPart(){
+		if (isConnected()){
+			sendImg = true;
+			toggleViews(true);
 			
+			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, cropX, cropY, PART_SIZE); 
+			
+			if (partsTotal > part){
+				part++;
+				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
+				//sendImgPart(part, partsTotal);
+				PenPrinterHelper.sendImgViaPart(capturedImage, cropX, cropY, part, partsTotal, PART_SIZE, this);
+				updateProgress(part, partsTotal);
+				
+			}else{
+				Toast.makeText(this, "partREQUEST ERR", Toast.LENGTH_SHORT).show();
+			}	
+		}else{
+			Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
+		}
+	}				
+	
+	private void updateProgress(int part, int totalParts){		
+		progressText.setText("part: " + part + " / " + totalParts);
+		progressBar.setMax(totalParts);
+		progressBar.setProgress(part);
+	}	
+	
+	private void toggleViews(boolean imageCaptured) {
+		
+		int show = (imageCaptured) ? View.VISIBLE : View.GONE; 
+		
+		btnCanny.setVisibility(show);
+		
+		btnThreshold.setVisibility(show);
+		ll_progress.setVisibility((sendImg) ? View.VISIBLE: View.GONE);
+		bw_threshold.setVisibility(BWtrashold ? View.VISIBLE: View.GONE);		
+							
+		btnSendCrop.setVisibility((!BWcanny && !BWtrashold) ? View.GONE : View.VISIBLE);
+		
+		btnCanny.setEnabled(!(BWcanny || BWtrashold));
+		btnThreshold.setEnabled(!(BWcanny || BWtrashold));		
 	}
 	
 
@@ -231,10 +278,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 			}
 		}
 	};
-	
-	public GamePenPrinter() {
-		Log.i(TAG, "Instantiated new " + this.getClass());
-	}	
+			
 
 	@Override
 	public void onPause() {
@@ -275,20 +319,25 @@ public class GamePenPrinter extends GameTemplateClass implements
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		
-		if (capturedImage != null){
-			return capturedImage;
+		if (capturedImage != null){		
+			Core.rectangle(printImage, 
+					new Point(0, 0), new Point(cropX, cropY), 
+					new Scalar(255, 255, 255), 1, 1, 0);
+			return printImage;
 		}
 		
 		Mat src = inputFrame.rgba();
+		
 		if (doCapture){
-			Log.d("SSS", "doCapture = true");
 			doCapture = false;
-			capturedImage = src;			
+			capturedImage = src;	
+			printImage = capturedImage.clone();
+		}else{			
+			Core.rectangle(src, 
+					new Point(0, 0), new Point(cropX, cropY), 
+					new Scalar(255, 255, 255), 1, 1, 0);
 		}
-		if (capturedImage != null){
-			return capturedImage;
-		}
-			
+		
 		
 		return src;
 	}
@@ -365,12 +414,24 @@ public class GamePenPrinter extends GameTemplateClass implements
 	@Override
 	public void onConnectToDevice() {
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST, 0);		
+				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST_2, 0);		
 	}
 
 	@Override
 	public void recieveMsgFromNxt(Message myMessage) {
-		// TODO Auto-generated method stub
+		int type = myMessage.getData().getInt("message");
+		//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();	
+		
+		switch(type){
+			case BTControls.FILE_NEW_PACKAGE_REQUEST:				
+				sendImgPart();
+				break;
+			
+			default:
+				//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
+				break;
+		}
 		
 	}
+
 }

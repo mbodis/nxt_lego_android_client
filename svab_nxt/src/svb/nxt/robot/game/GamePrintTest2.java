@@ -65,6 +65,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 	private boolean sendImg = false;
 	private boolean img_blackAndWhite = false; 
 	private Mat capturedImage = null;
+	private Mat printImage = null; // capture img + sqare area
 	private int part = 0;
 	
 	// view
@@ -277,18 +278,20 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		
 		Mat src = inputFrame.rgba();
 		
-		if (doCapture){
-			Log.d("SSS", "doCapture = true");
+		if (doCapture){			
 			doCapture = false;
-			capturedImage = src;			
+			capturedImage = src;
+			printImage = src;
 		}else{
-			Point pt1 = new Point(0, 0);
-			Point pt2 = new Point(96, 60);
-			Core.rectangle(src, pt1, pt2, new Scalar(255,
-					255, 255), 1, 1, 0);
+			Core.rectangle(src, 
+					new Point(0, 0), new Point(cropX, cropY), 
+					new Scalar(255, 255, 255), 1, 1, 0);
 		}
-		if (capturedImage != null){
-			return capturedImage;
+		if (capturedImage != null){		
+			Core.rectangle(printImage, 
+					new Point(0, 0), new Point(cropX, cropY), 
+					new Scalar(255, 255, 255), 1, 1, 0);
+			return printImage;
 		}
 		
 		return src;
