@@ -18,8 +18,8 @@ public class BTControls {
 	public static final int PROGRAM_READ_LINE = 4;
 	public static final int PROGRAM_PRINTER_TEST = 5;
 	public static final int PROGRAM_PRINTER_TEST_2 = 6;
-	public static final int PROGRAM_PEN_PRINTER= 7;
-	public static final int PROGRAM_DRILL_PRINTER= 8;
+	public static final int PROGRAM_PEN_PRINTER = 7;
+	public static final int PROGRAM_DRILL_PRINTER = 8;
 	public static final int PROGRAM_SEGWAY = 9;
 	
 	/**
@@ -52,7 +52,6 @@ public class BTControls {
 	public static final int MOTOR_SET_SPEED = 34;
 	public static final int MOTOR_SET_ACC = 35;
 	
-	
 	/**
 	 * MOTORS COMBINATION
 	 */
@@ -76,7 +75,7 @@ public class BTControls {
 	public static final int LIGHT_SET_MAX = 61;
 	
 	/**
-	 * PRINTER
+	 * PEN PRINTER
 	 */	
 	public static final int FILE_NEW_PACKAGE_REQUEST = 50;
 	
@@ -98,9 +97,7 @@ public class BTControls {
 	public static final int PEN_UP = 61;
 	public static final int PEN_DOWN = 62;
 	
-	
-	
-	
-	
+	/**
+	 * DRILL PRINTER
+	 */
 }
-

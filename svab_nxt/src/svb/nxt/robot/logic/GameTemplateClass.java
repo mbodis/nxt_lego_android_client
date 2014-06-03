@@ -18,6 +18,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.Vibrator;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +43,9 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 	private boolean pairing;
 	protected int robotType;
 	
+	// wake lock
+	PowerManager.WakeLock wl;
+	
 	/**
 	 * @return true, when currently pairing
 	 */
@@ -60,10 +65,26 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 		robotType = MainMenuActivity.getRobotType(this);
 		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);		
-		
+				
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wl = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "svb-nxt");		 
 		setupLayout();
 	}
 
+	@Override
+	protected void onResume() {
+		wl.acquire();
+		super.onResume();
+	}
+	
+	@Override
+	protected void onPause() {
+		wl.release();
+		super.onPause();
+	}
+	
+	
+	
 	/**
 	 * Updates the menus and possible buttons when connection status changed.
 	 */

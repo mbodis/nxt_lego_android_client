@@ -1,4 +1,4 @@
-package svb.nxt.robot.logic;
+package svb.nxt.robot.logic.img;
 
 import org.opencv.core.Mat;
 

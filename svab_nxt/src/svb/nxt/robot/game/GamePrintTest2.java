@@ -20,9 +20,9 @@ import svb.nxt.robot.bt.BTConnectable;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.GameTemplateClass;
-import svb.nxt.robot.logic.ImageConvertClass;
-import svb.nxt.robot.logic.ImageLog;
-import android.graphics.Bitmap;
+import svb.nxt.robot.logic.PenPrinterHelper;
+import svb.nxt.robot.logic.img.ImageConvertClass;
+import svb.nxt.robot.logic.img.ImageLog;
 import android.hardware.Camera.Size;
 import android.os.Message;
 import android.util.Log;
@@ -50,10 +50,8 @@ import android.widget.Toast;
  */
 public class GamePrintTest2 extends GameTemplateClass implements
 		CvCameraViewListener2, BTConnectable {
-	
-	/**
-	 * IMAGE PROCESSING
-	 */
+		
+	// image processing 
 	private static final String TAG = "GamePrintFoto::Activity";
 	private OpenCVColorView mOpenCvCameraView;
 	private List<Size> mResolutionList;
@@ -62,10 +60,12 @@ public class GamePrintTest2 extends GameTemplateClass implements
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
 	
+	// printer customize
 	private boolean doCapture = false;
 	private boolean sendImg = false;
 	private boolean img_blackAndWhite = false; 
 	private Mat capturedImage = null;
+	private int part = 0;
 	
 	// view
 	private Button btnCaptureImage, btnSaveFull, btnCanny,
@@ -74,15 +74,9 @@ public class GamePrintTest2 extends GameTemplateClass implements
 	private TextView progressText;
 	private LinearLayout ll_progress;
 	
-	private int part = 0;
-	//TODO USE WAKE LOCK FOR ACTIVITY
-	
-	// 96 * 60 -> NXT display 
-	// * 8 binarnych cisel - max
-	int cX = 12;
-	int cropX = 8*cX;
-	int cropY = 60;
-	
+	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
+	int cropX = 8*12; // 
+	int cropY = 60;	
 	int PART_SIZE = 100; 
 	
 	@Override
@@ -153,15 +147,19 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {
-				sendImg();
+				sendImgPart();
 			}
 		});
 		btnSendFull = (Button) findViewById(R.id.btnSendFull);
 		btnSendFull.setOnClickListener(new OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
-				sendFullImg();
+			public void onClick(View v) {				
+				if (isConnected()){
+					PenPrinterHelper.sendFullImg(capturedImage, cropX, cropY, GamePrintTest2.this);
+				}else{
+					Toast.makeText(GamePrintTest2.this, "not connected", Toast.LENGTH_SHORT).show();
+				}
 			}
 		});
 		
@@ -174,17 +172,19 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		toggleBtns(false);
 	}
 	
-	private void sendImg(){
+	private void sendImgPart(){
 		if (isConnected()){
 			sendImg = true;
 			toggleBtns(true);
 			
-			int partsTotal = countImageParts(); 
+			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, cropX, cropY, PART_SIZE); 
 			
 			if (partsTotal > part){
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
-				sendImgPart(part, partsTotal);
+				//sendImgPart(part, partsTotal);
+				PenPrinterHelper.sendImgViaPart(capturedImage, cropX, cropY, part, partsTotal, PART_SIZE, this);
+				updateProgress(part, partsTotal);
 				
 			}else{
 				Toast.makeText(this, "partREQUEST ERR", Toast.LENGTH_SHORT).show();
@@ -192,113 +192,12 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		}else{
 			Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
 		}
-	}
-	
-	private int countImageParts(){
-		
-		Bitmap b = ImageConvertClass.cropImage(this.capturedImage, this.cropX, this.cropY);
-		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-		int len = sb.toString().length() / 8;
-		int totalParts = len/(this.PART_SIZE) + (((len % (this.PART_SIZE))>0)? 1 : 0);
-		// Log.d("SVB", "totalParts: " + totalParts);
-		
-		return totalParts;		
-	}
-	
-	private void sendImgPart(int part, int partTotal){			
-		
-		Bitmap b = ImageConvertClass.cropImage(this.capturedImage, this.cropX, this.cropY);
-		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-		//Log.d("SVB", "res: " + sb.toString());		
-		
-		if (part == 1){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
-		}else{
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START_PACKAGE, BTControls.ACTION_PACKAGE_NEW_CONTENT);
-		}		
-		
-		int reading_part = 1;
-		int partSize = 0; 
-		
-		boolean end_row = false;
-		for (int r=0;r<cropY;r++){
-			for (int i=0;i<cX;i++){
-				int from = r*cropX + i*8;
-				int to = from + 8;
-				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
-				
-				partSize++;							
-				
-				if (reading_part == part){
-					// MyLogger.addLog(this, "sending.txt", "part: " + part + " tot:" + partTotal + " reading:" + reading_part + " partSize:" + partSize);
-					updateProgress(part, partTotal);
-					sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-					
-					// String binn = sb.substring(from, to);
-					// Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
-					if (end_row){
-						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-					}
-				}
-				
-				if (partSize == PART_SIZE){
-					partSize = 0;
-					reading_part++;
-				}				
-				
-				end_row = false;
-			}
-			end_row = true;
-		}
-		
-		if (partTotal == part){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT);			
-			// Log.d("SVB", "FILE END");
-		}else{			
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT);			
-			// Log.d("SVB", "PART END");
-		}
-	}
+	}				
 	
 	private void updateProgress(int part, int totalParts){		
 		progressText.setText("part: " + part + " / " + totalParts);
 		progressBar.setMax(totalParts);
 		progressBar.setProgress(part);
-	}
-	
-	
-	private void sendFullImg(){		
-		if (isConnected()){
-									
-			int cX = 12;
-			int cropX = 8*cX;
-			int cropY = 60;
-			
-			Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
-			StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-			Log.d("SVB", "res: " + sb.toString());		
-			
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
-			boolean end_row = false;
-			for (int r=0;r<cropY;r++){
-				for (int i=0;i<cX;i++){
-					int from = r*cropX + i*8;
-					int to = from + 8;
-					byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
-					sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-					//String binn = sb.substring(from, to);
-					//Log.d("SVB", "form:" + from + "to:" + to + "bin:" + binn);
-					if (end_row){
-						sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-					}
-					end_row = false;
-				}
-				end_row = true;
-			}
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT_AND_DISPLAY);	
-		}else{
-			Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
-		}
 	}	
 	
 	private void toggleBtns(boolean imageCaptured) {
@@ -391,8 +290,6 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		if (capturedImage != null){
 			return capturedImage;
 		}
-			
-		
 		
 		return src;
 	}
@@ -479,7 +376,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 		
 		switch(type){
 			case BTControls.FILE_NEW_PACKAGE_REQUEST:				
-				sendImg();
+				sendImgPart();
 				break;
 			
 			default:
