@@ -28,10 +28,12 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,7 +45,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * TODO
+ * ciernobiele tlacenie z aktualnej fotografie
+ * 1) odfotenie
+ * 2) nasvavenie velkosti obrazku + dotyk premiestnenie
+ * 3a) hranovy operator -> cierno biela - zvyraznene hrany
+ * 3b) fotka sa premietne do sedej a pouzije sa eqHistogramu
+ * 4b) nasavenie hranice pre prechod do cierno bielej
+ * 5) posielanie po castiach do NXT pre tlac
+ * 
  * @author svab
  *
  */
@@ -64,9 +73,12 @@ public class GamePenPrinter extends GameTemplateClass implements
 	private boolean sendImg = false;
 	private boolean BWcanny = false; 
 	private boolean BWtrashold = false;
+	
 	private Mat capturedImage = null;
 	private Mat printImage = null; // capture img + sqare area
-	private int part = 0;
+	
+	private int part = 0; // current sending part 
+	private int thrashold = 50;
 	
 	// view
 	private Button btnCaptureImage, btnCanny, btnThreshold,
@@ -81,6 +93,8 @@ public class GamePenPrinter extends GameTemplateClass implements
 	int cropX = 8*12; // default size
 	int cropY = 60;	// default size
 	int PART_SIZE = 100; 
+	int cutSX = 0;
+	int cutSY = 0;
 	
 	@Override
 	public void setupLayout(){
@@ -89,6 +103,19 @@ public class GamePenPrinter extends GameTemplateClass implements
 		setContentView(R.layout.game_pen_printer);
 
 		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
+		mOpenCvCameraView.setOnTouchListener(new OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN){
+					cutSX = (int)event.getX() - 60 - cropX/2;// soft border camera
+					cutSY = (int)event.getY() - cropY/2;					
+					updateImgArea();
+				}
+					
+				return false;
+			}
+		});
 				
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
@@ -136,14 +163,15 @@ public class GamePenPrinter extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {
 				BWtrashold = true;
-				toggleViews(true);
-				// TODO SOMTHING ELSE
-				Imgproc.Canny(capturedImage, capturedImage, 20, 120);
+				toggleViews(true);				
+				Imgproc.cvtColor(capturedImage, capturedImage, Imgproc.COLOR_RGB2GRAY);				
+				Imgproc.equalizeHist(capturedImage, capturedImage);				
 				updateImgArea();
 			}
 		});
 		
 		bw_threshold = (SeekBar) findViewById(R.id.bw_threshold);
+		bw_threshold.setProgress(thrashold);
 		bw_threshold.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			
 			@Override
@@ -158,8 +186,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				Log.d("SVB", "progress: " + progress);
-				// TODO SOMTHING ELSE
-				
+				thrashold = progress;
 				updateImgArea();
 			}
 		});
@@ -201,6 +228,31 @@ public class GamePenPrinter extends GameTemplateClass implements
 		toggleViews(false);
 	}
 	
+	public void minusX(View view){
+		if (cropX>0){
+			cropX --;
+		}
+		editX.setText(cropX+"");
+		updateImgArea();
+	}
+	public void plusX(View view){
+		cropX ++;
+		editX.setText(cropX+"");
+	}
+	
+	public void minusY(View view){
+		if (cropY>0){
+			cropY --;
+		}
+		editY.setText(cropY+"");
+		updateImgArea();
+	}			
+	public void plusY(View view){
+		cropY ++;		
+		editY.setText(cropY+"");
+		updateImgArea();
+	}
+	
 	private void updateImgArea(){
 		if (editX.getText().length() == 0){
 			cropX = 0;
@@ -216,6 +268,9 @@ public class GamePenPrinter extends GameTemplateClass implements
 		
 		if (capturedImage != null){
 			printImage = capturedImage.clone();
+			if (BWtrashold){
+				Imgproc.threshold(printImage, printImage, thrashold, 255, Imgproc.THRESH_BINARY);
+			}
 		}
 	}
 	
@@ -230,7 +285,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
 				//sendImgPart(part, partsTotal);
-				PenPrinterHelper.sendImgViaPart(capturedImage, cropX, cropY, part, partsTotal, PART_SIZE, this);
+				PenPrinterHelper.sendImgViaPart(capturedImage, cutSX, cutSY, cutSX+cropX, cutSY+cropY, part, partsTotal, PART_SIZE, this);
 				updateProgress(part, partsTotal);
 				
 			}else{
@@ -319,10 +374,8 @@ public class GamePenPrinter extends GameTemplateClass implements
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		
-		if (capturedImage != null){		
-			Core.rectangle(printImage, 
-					new Point(0, 0), new Point(cropX, cropY), 
-					new Scalar(255, 255, 255), 1, 1, 0);
+		if (capturedImage != null){			
+			addSelectArea(printImage);
 			return printImage;
 		}
 		
@@ -333,15 +386,24 @@ public class GamePenPrinter extends GameTemplateClass implements
 			capturedImage = src;	
 			printImage = capturedImage.clone();
 		}else{			
-			Core.rectangle(src, 
-					new Point(0, 0), new Point(cropX, cropY), 
-					new Scalar(255, 255, 255), 1, 1, 0);
+			addSelectArea(src);
 		}
 		
 		
 		return src;
 	}
 
+	private void addSelectArea(Mat img){
+		Core.rectangle(img, 
+				new Point(cutSX-1, cutSY-1), new Point(cutSX+cropX+1, cutSY+cropY+1), 
+				new Scalar(255, 255, 255), 1, 1, 0);
+		Core.rectangle(img, 
+				new Point(cutSX, cutSY), new Point(cutSX+cropX, cutSY+cropY), 
+				new Scalar(0, 0, 0), 1, 1, 0);
+		Core.rectangle(img, 
+				new Point(cutSX+1, cutSY+1), new Point(cutSX+cropX-1, cutSY+cropY-1), 
+				new Scalar(255, 255, 255), 1, 1, 0);
+	}
 	
 	/**
 	 * menu ponuka okrem pripojenia na robota aj zmenu rozlisenia displeja a zmenu farebneho nasatenia 

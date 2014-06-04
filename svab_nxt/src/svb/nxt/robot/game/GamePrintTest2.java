@@ -184,7 +184,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
 				//sendImgPart(part, partsTotal);
-				PenPrinterHelper.sendImgViaPart(capturedImage, cropX, cropY, part, partsTotal, PART_SIZE, this);
+				PenPrinterHelper.sendImgViaPart(capturedImage, 0, 0, cropX, cropY, part, partsTotal, PART_SIZE, this);
 				updateProgress(part, partsTotal);
 				
 			}else{

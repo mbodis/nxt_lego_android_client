@@ -18,13 +18,16 @@ public class PenPrinterHelper {
 	/**
 	 * posielanie suboru po castiach
 	 * @param capturedImage povodny obrazok
-	 * @param cropX sirka vyrezu od bodu [0,0]
-	 * @param cropY vyska vyrezu od bodu [0,0]
+	 * @param cropStartX zacaitok vyrezu X
+	 * @param cropStartY zaciatok vyrezu Y
+	 * @param cropX sirka vyrezu od bodu [cropStartX, cropStartY]
+	 * @param cropY vyska vyrezu od bodu [cropStartX, cropStartY]
 	 * @param part ktora cast sa posiela
 	 * @param partTotal pocet casti spolu
 	 * @param game referencia na triedu hry pre zaielanie dat cez BT
 	 */
-	public static void sendImgViaPart(Mat capturedImage, int cropX, int cropY, int part, int partTotal, 
+	public static void sendImgViaPart(Mat capturedImage, int cropStartX, int cropStartY, 
+			int cropX, int cropY, int part, int partTotal, 
 			int PART_SIZE, GameTemplateClass game){	
 		
 		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
