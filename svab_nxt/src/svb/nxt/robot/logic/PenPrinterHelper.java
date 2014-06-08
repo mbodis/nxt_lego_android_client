@@ -45,8 +45,8 @@ public class PenPrinterHelper{
 		
 		boolean end_row = false;
 		for (int r=0; r < cropHeight; r++){
-			for (int i=0; i < cropWidth / 8; i++){
-				int from = r*cropWidth + i*8;
+			for (int c=0; c < cropWidth / 8; c++){
+				int from = r*cropWidth + c*8;
 				int to = from + 8;
 				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
 				

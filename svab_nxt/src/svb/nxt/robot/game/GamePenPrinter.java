@@ -559,7 +559,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 	@Override
 	public void onConnectToDevice() {
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PRINTER_TEST_2, 0);		
+				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_PEN_PRINTER, 0);		
 	}
 
 	@Override
