@@ -7,6 +7,7 @@ import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.dialog.ChooseRobotDialog;
 import svb.nxt.robot.dialog.HelpDialog;
+import svb.nxt.robot.game.GameDrillPrinter;
 import svb.nxt.robot.game.GameMoveAccelerometer;
 import svb.nxt.robot.game.GameMoveColorActivity;
 import svb.nxt.robot.game.GameMoveDirectionActivity;
@@ -168,7 +169,8 @@ public class MainMenuActivity extends Activity {
 			playGame = new Intent(getApplicationContext(),
 					GamePenPrinter.class);	
 		} else if (selectedProgram.equals(getString(R.string.program_drill_print_photo))){
-			Toast.makeText(getApplicationContext(), "in progress ...", Toast.LENGTH_SHORT).show();
+			playGame = new Intent(getApplicationContext(),
+					GameDrillPrinter.class);
 		} else if (selectedProgram.equals(getString(R.string.program_segway))){
 			Toast.makeText(getApplicationContext(), "in progress ...", Toast.LENGTH_SHORT).show();
 //			playGame = new Intent(getApplicationContext(),

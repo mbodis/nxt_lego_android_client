@@ -2,6 +2,7 @@ package svb.nxt.robot.logic;
 
 import org.opencv.core.Mat;
 
+import svb.lib.log.MyLogger;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.logic.img.ImageConvertClass;
@@ -36,8 +37,10 @@ public class PenPrinterHelper{
 		
 		if (part == 1){
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW START");
 		}else{
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START_PACKAGE, BTControls.ACTION_PACKAGE_NEW_CONTENT);
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW PACKAGE");
 		}		
 		
 		int reading_part = 1;
@@ -55,10 +58,12 @@ public class PenPrinterHelper{
 				if (reading_part == part){
 					// MyLogger.addLog(this, "sending.txt", "part: " + part + " tot:" + partTotal + " reading:" + reading_part + " partSize:" + partSize);					
 					game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
+					// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "DATA: " + sb.substring(from, to));
 										
 					// Log.d("SVB", "form:" + from + "to:" + to + "bin:" + sb.substring(from, to));
 					if (end_row){
 						game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
+						// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW LINE ");
 					}
 				}
 				
@@ -73,11 +78,13 @@ public class PenPrinterHelper{
 		}
 		
 		if (partTotal == part){
-			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT);			
+			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT);
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "END FILE");
 			// Log.d("SVB", "FILE END");
 			return true;
 		}else{			
-			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT);			
+			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT);
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "END PACKAGE");
 			// Log.d("SVB", "PART END");			
 		}
 		return false;

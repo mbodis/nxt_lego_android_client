@@ -96,9 +96,9 @@ public class GamePenPrinter extends GameTemplateClass implements
 	private Mat printImage = null; // capture img + sqare area
 	
 	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
-	int cropWidth = 8*12; // default size
+	int cropWidth = 96; // 8 * 12 default size
 	int cropHight = 60;	// default size
-	int PART_SIZE = 100; 
+	int PART_SIZE = 100;
 	int cutFromX = 0;
 	int cutFromY = 0;
 	private int part = 0; // current sending part 
@@ -313,6 +313,16 @@ public class GamePenPrinter extends GameTemplateClass implements
 	}
 	
 	private void sendImgPart(){
+		
+		// log full image
+		Bitmap b1 = ImageConvertClass.cropImage(capturedImage, 0, 0, capturedImage.width(), capturedImage.height());
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "p1");
+		Log.d("SVB", "w:" + b1.getWidth() + " h:" + b1.getHeight());
+		// log crop image
+		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
+		ImageLog.saveImageToFile(getApplicationContext(), b2, "p2");
+		Log.d("SVB", "w:" + b2.getWidth() + " h:" + b2.getHeight());
+		
 		if (isConnected()){
 			isPrinting = true;
 			sendImg = true;
@@ -327,15 +337,6 @@ public class GamePenPrinter extends GameTemplateClass implements
 				if (BWtrashold){
 					Imgproc.threshold(capturedImage, capturedImage, thrashold, 255, Imgproc.THRESH_BINARY);
 				}
-				
-				//log full image
-				Bitmap b1 = ImageConvertClass.cropImage(capturedImage, 0, 0, capturedImage.width(), capturedImage.height());
-				ImageLog.saveImageToFile(getApplicationContext(), b1, "b1");
-				Log.d("SVB", "w:" + b1.getWidth() + " h:" + b1.getHeight());
-				// log crop image
-				Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
-				ImageLog.saveImageToFile(getApplicationContext(), b2, "b2");
-				Log.d("SVB", "w:" + b2.getWidth() + " h:" + b2.getHeight());				
 				
 				boolean res = PenPrinterHelper.sendImgPart(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, part, partsTotal, PART_SIZE, this);
 				if (res){

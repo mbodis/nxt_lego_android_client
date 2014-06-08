@@ -4,6 +4,7 @@ import org.opencv.core.Mat;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.util.Log;
 
 public class ImageConvertClass {
 
@@ -72,7 +73,8 @@ public class ImageConvertClass {
 	}
 	
 	public static Bitmap cropImage(Mat mat, int cropStartX, int cropStartY, int cropWidth, int cropHeight){
-		// Log.d("SSS", "cols:"+foto.cols() + "rows:"+foto.rows());			
+		Log.d("SSS", "mat cols:"+mat.cols() + "rows:"+mat.rows());			
+		Log.d("SSS", "csX: " + cropStartX + " csY: " + cropStartY + "cw: " + cropWidth + " ch: " + cropHeight);
 		Bitmap btm = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);			
 		org.opencv.android.Utils.matToBitmap(mat, btm);
 		
@@ -80,7 +82,7 @@ public class ImageConvertClass {
 		int imgY = 0;
 		Bitmap res = Bitmap.createBitmap(cropWidth, cropHeight, Bitmap.Config.ARGB_8888);
 		for (int y = cropStartY; y < cropStartY + cropHeight; y++) {
-    		for (int x = cropStartX; x < cropStartX+cropWidth; x++) {
+    		for (int x = cropStartX; x < cropStartX + cropWidth; x++) {
 
         		res.setPixel(imgX, imgY, btm.getPixel(x, y));
         		imgX ++;
