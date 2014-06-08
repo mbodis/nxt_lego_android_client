@@ -139,7 +139,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {	
-				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 96, 60));
+				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 0, 0, 96, 60));
 			}
 		});
 		
@@ -157,7 +157,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {				
 				if (isConnected()){
-					PenPrinterHelper.sendFullImg(capturedImage, cropX, cropY, GamePrintTest2.this);
+					PenPrinterHelper.sendImgTogether(capturedImage, 0, 0, cropX, cropY, GamePrintTest2.this);
 				}else{
 					Toast.makeText(GamePrintTest2.this, "not connected", Toast.LENGTH_SHORT).show();
 				}
@@ -178,13 +178,13 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			sendImg = true;
 			toggleBtns(true);
 			
-			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, cropX, cropY, PART_SIZE); 
+			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, 0, 0, cropX, cropY, PART_SIZE); 
 			
 			if (partsTotal > part){
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
 				//sendImgPart(part, partsTotal);
-				PenPrinterHelper.sendImgViaPart(capturedImage, 0, 0, cropX, cropY, part, partsTotal, PART_SIZE, this);
+				PenPrinterHelper.sendImgPart(capturedImage, 0, 0, cropX, cropY, part, partsTotal, PART_SIZE, this);
 				updateProgress(part, partsTotal);
 				
 			}else{

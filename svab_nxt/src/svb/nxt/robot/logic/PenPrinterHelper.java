@@ -13,24 +13,24 @@ import android.graphics.Bitmap;
  * @author svab
  *
  */
-public class PenPrinterHelper {
+public class PenPrinterHelper{
 	
 	/**
 	 * posielanie suboru po castiach
 	 * @param capturedImage povodny obrazok
 	 * @param cropStartX zacaitok vyrezu X
 	 * @param cropStartY zaciatok vyrezu Y
-	 * @param cropX sirka vyrezu od bodu [cropStartX, cropStartY]
-	 * @param cropY vyska vyrezu od bodu [cropStartX, cropStartY]
+	 * @param cropWidth sirka vyrezu od bodu [cropStartX, cropStartY]
+	 * @param cropHeight vyska vyrezu od bodu [cropStartX, cropStartY]
 	 * @param part ktora cast sa posiela
 	 * @param partTotal pocet casti spolu
 	 * @param game referencia na triedu hry pre zaielanie dat cez BT
 	 */
-	public static void sendImgViaPart(Mat capturedImage, int cropStartX, int cropStartY, 
-			int cropX, int cropY, int part, int partTotal, 
+	public static boolean sendImgPart(Mat capturedImage, int cropStartX, int cropStartY, 
+			int cropWidth, int cropHeight, int part, int partTotal, 
 			int PART_SIZE, GameTemplateClass game){	
 		
-		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
+		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropStartX, cropStartY, cropWidth, cropHeight);
 		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
 		//Log.d("SVB", "res: " + sb.toString());		
 		
@@ -44,9 +44,9 @@ public class PenPrinterHelper {
 		int partSize = 0; 
 		
 		boolean end_row = false;
-		for (int r=0;r<cropY;r++){
-			for (int i=0;i<cropX/8;i++){
-				int from = r*cropX + i*8;
+		for (int r=0; r < cropHeight; r++){
+			for (int i=0; i < cropWidth / 8; i++){
+				int from = r*cropWidth + i*8;
 				int to = from + 8;
 				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
 				
@@ -75,33 +75,37 @@ public class PenPrinterHelper {
 		if (partTotal == part){
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT);			
 			// Log.d("SVB", "FILE END");
+			return true;
 		}else{			
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT);			
-			// Log.d("SVB", "PART END");
+			// Log.d("SVB", "PART END");			
 		}
+		return false;
 	}
 	
 	/**
 	 * 
 	 * @param capturedImage
-	 * @param cropX
-	 * @param cropY
+	 * @param cropStartX
+	 * @param cropStartY
+	 * @param cropWidth
+	 * @param cropHeight
 	 * @param game
 	 */
-	public static void sendFullImg(Mat capturedImage, int cropX, int cropY, GameTemplateClass game){		
+	public static void sendImgTogether(Mat capturedImage, int cropStartX, int cropStartY, int cropWidth, int cropHeight, GameTemplateClass game){		
 		
-		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
+		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropStartX, cropStartY, cropWidth, cropHeight);
 		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
-		//Log.d("SVB", "res: " + sb.toString());		
+		//Log.d("SVB", "res: " + sb.toString());
 		
 		game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
 		
 		boolean end_row = false;
 		
-		for (int r=0;r<cropY;r++){
-			for (int i=0;i<cropX/8;i++){
+		for (int r=0;r<cropHeight;r++){
+			for (int i=0;i<cropWidth/8;i++){
 				
-				int from = r*cropX + i*8;
+				int from = r*cropWidth + i*8;
 				int to = from + 8;				
 				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
 				
@@ -126,15 +130,18 @@ public class PenPrinterHelper {
 	 * <b>obrazok sa poseila po bytoch - t.j. plati len pre B/W obr</b>
 	 * 
 	 * @param capturedImage binarny obrazok
-	 * @param cropX sirka vyrezu
-	 * @param cropY vyska vyrezu
+	 * @param cutFromX zaciatok vyrezu X
+	 * @param cutFromY zaciatok vyrezu Y
+	 * @param cropWidthX sirka vyrezu
+	 * @param cropHeightY vyska vyrezu
 	 * @param PART_SIZE velkost jednej casti
 	 * @return pocet casti kolko obshuje vyrez 
 	 */
-	public static int getCountImageParts(Mat capturedImage, int cropX, int cropY, int PART_SIZE){
+	public static int getCountImageParts(Mat capturedImage, int cutFromX, int cutFromY,  int cropWidthX, int cropHeightY, int PART_SIZE){
 		
-		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropX, cropY);
+		Bitmap b = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidthX, cropHeightY);
 		StringBuilder sb = ImageConvertClass.getImagetoBinaryStr(b);
+		
 		int len = sb.toString().length() / 8;
 		int totalParts = len/(PART_SIZE) + (((len % (PART_SIZE))>0)? 1 : 0);
 		// Log.d("SVB", "totalParts: " + totalParts);

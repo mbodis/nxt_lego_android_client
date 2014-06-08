@@ -59,6 +59,7 @@
                 android:weightSum="1" >
 
                 <Button
+                    android:id="@+id/minusx"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.15"
@@ -75,6 +76,7 @@
                     android:text="96" />
 
                 <Button
+                    android:id="@+id/plusx"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.15"
@@ -82,6 +84,7 @@
                     android:text="+" />
 
                 <Button
+                    android:id="@+id/minusy"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.15"
@@ -98,6 +101,7 @@
                     android:text="60" />
 
                 <Button
+                    android:id="@+id/plusy"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.15"
@@ -172,7 +176,48 @@
                         android:layout_height="wrap_content" />
                 </LinearLayout>
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="log: \nKEEP ENOUGHT POWER TO DEVICE\n\nxStart:100\nyStart:122\n\nnstart:13:10\nend:14:30"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
     </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/help_ll"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="10dp"
+        android:layout_toLeftOf="@+id/linearLayout1"
+        android:orientation="vertical" >
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/my_black_white_selector"
+            android:onClick="penHeadDown"
+            android:padding="10dp"
+            android:text="@string/print_test_pen_head_down" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/my_black_white_selector"
+            android:onClick="penHeadUp"
+            android:padding="10dp"
+            android:text="@string/print_test_pen_head_up" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/my_black_white_selector"
+            android:onClick="hide"
+            android:padding="10dp"
+            android:text="hide" />
+    </LinearLayout>
 
 </RelativeLayout>

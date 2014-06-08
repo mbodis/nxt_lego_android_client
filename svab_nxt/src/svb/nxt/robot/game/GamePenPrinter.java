@@ -1,7 +1,10 @@
 package svb.nxt.robot.game;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -21,6 +24,9 @@ import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.GameTemplateClass;
 import svb.nxt.robot.logic.PenPrinterHelper;
+import svb.nxt.robot.logic.img.ImageConvertClass;
+import svb.nxt.robot.logic.img.ImageLog;
+import android.graphics.Bitmap;
 import android.hardware.Camera.Size;
 import android.os.Message;
 import android.text.Editable;
@@ -33,6 +39,7 @@ import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -73,28 +80,29 @@ public class GamePenPrinter extends GameTemplateClass implements
 	private boolean sendImg = false;
 	private boolean BWcanny = false; 
 	private boolean BWtrashold = false;
-	
-	private Mat capturedImage = null;
-	private Mat printImage = null; // capture img + sqare area
-	
-	private int part = 0; // current sending part 
-	private int thrashold = 50;
+	private boolean isPrinting = false;
 	
 	// view
 	private Button btnCaptureImage, btnCanny, btnThreshold,
 		btnSendCrop;
-	private SeekBar bw_threshold;
+	private SeekBar bwThresholdSb;
 	private ProgressBar progressBar;
-	private TextView progressText;
-	private LinearLayout ll_progress;
+	private TextView progressTv, statusTv;
+	private LinearLayout llProgress;
 	private EditText editX, editY;
 	
+	// selected image
+	private Mat capturedImage = null;
+	private Mat printImage = null; // capture img + sqare area
+	
 	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
-	int cropX = 8*12; // default size
-	int cropY = 60;	// default size
+	int cropWidth = 8*12; // default size
+	int cropHight = 60;	// default size
 	int PART_SIZE = 100; 
-	int cutSX = 0;
-	int cutSY = 0;
+	int cutFromX = 0;
+	int cutFromY = 0;
+	private int part = 0; // current sending part 
+	private int thrashold = 50; // default threshhold for convert to b/w
 	
 	@Override
 	public void setupLayout(){
@@ -107,20 +115,21 @@ public class GamePenPrinter extends GameTemplateClass implements
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN){
-					cutSX = (int)event.getX() - 60 - cropX/2;// soft border camera
-					cutSY = (int)event.getY() - cropY/2;					
-					updateImgArea();
+				if (!isPrinting){
+					if (event.getAction() == MotionEvent.ACTION_DOWN){
+						cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
+						cutFromY = (int)event.getY() - cropHight/2;					
+						updateImgArea();
+					}
 				}
-					
 				return false;
 			}
 		});
 				
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-		ll_progress = (LinearLayout) findViewById(R.id.ll_progress);		
-		progressText = (TextView) findViewById(android.R.id.text1);		
+		llProgress = (LinearLayout) findViewById(R.id.ll_progress);		
+		progressTv = (TextView) findViewById(android.R.id.text1);		
 		progressBar = (ProgressBar) findViewById(android.R.id.progress);
 		progressBar.setProgress(0);
 				
@@ -135,14 +144,23 @@ public class GamePenPrinter extends GameTemplateClass implements
 					sendImg = false;
 					BWcanny = false;
 					BWtrashold = false;
-					toggleViews(false);
+					updateView(false);
 					return;
 				}								
 				doCapture = true;
-				toggleViews(true);
+				updateView(true);
 			}
 
-		});					
+		});	
+		btnCaptureImage.setOnLongClickListener(new OnLongClickListener() {
+			
+			@Override
+			public boolean onLongClick(View v) {
+				((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.VISIBLE);
+				return false;
+			}
+		});
+		
 		btnCanny = (Button) findViewById(R.id.btnCanny);
 		btnCanny.setOnClickListener(new OnClickListener() {
 			
@@ -150,7 +168,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 			public void onClick(View v) {	
 				if (capturedImage != null){
 					BWcanny = true;
-					toggleViews(true);
+					updateView(true);
 					Imgproc.Canny(capturedImage, capturedImage, 20, 120);
 					updateImgArea();
 				}
@@ -163,16 +181,16 @@ public class GamePenPrinter extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {
 				BWtrashold = true;
-				toggleViews(true);				
+				updateView(true);				
 				Imgproc.cvtColor(capturedImage, capturedImage, Imgproc.COLOR_RGB2GRAY);				
 				Imgproc.equalizeHist(capturedImage, capturedImage);				
 				updateImgArea();
 			}
 		});
 		
-		bw_threshold = (SeekBar) findViewById(R.id.bw_threshold);
-		bw_threshold.setProgress(thrashold);
-		bw_threshold.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+		bwThresholdSb = (SeekBar) findViewById(R.id.bw_threshold);
+		bwThresholdSb.setProgress(thrashold);
+		bwThresholdSb.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {										
@@ -184,8 +202,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 			
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
-					boolean fromUser) {
-				Log.d("SVB", "progress: " + progress);
+					boolean fromUser) {				
 				thrashold = progress;
 				updateImgArea();
 			}
@@ -217,53 +234,74 @@ public class GamePenPrinter extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {
-				if (cropX % 8 != 0){
-					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropX%8), Toast.LENGTH_SHORT).show();
-				}else{
+				if (cropWidth % 8 != 0){
+					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
+				}else{					
 					sendImgPart();
+					updateView(true);
 				}
 			}
 		});			
 		
-		toggleViews(false);
+		statusTv = ((TextView) findViewById(R.id.status));
+		statusTv.setText("");
+		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
+		updateView(false);
+	}
+	
+	public void penHeadDown(View view){
+		if (isConnected()){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					BTControls.PEN_DOWN, 0);
+		}
+	}
+	public void penHeadUp(View view){
+		if (isConnected()){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					BTControls.PEN_UP, 0);
+		}
+	}
+	
+	public void hide(View view){
+		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
 	}
 	
 	public void minusX(View view){
-		if (cropX>0){
-			cropX --;
+		if (cropWidth>0){
+			cropWidth --;
 		}
-		editX.setText(cropX+"");
+		editX.setText(cropWidth+"");
 		updateImgArea();
 	}
 	public void plusX(View view){
-		cropX ++;
-		editX.setText(cropX+"");
+		cropWidth ++;
+		editX.setText(cropWidth+"");
 	}
 	
 	public void minusY(View view){
-		if (cropY>0){
-			cropY --;
+		if (cropHight>0){
+			cropHight --;
 		}
-		editY.setText(cropY+"");
+		editY.setText(cropHight+"");
 		updateImgArea();
 	}			
 	public void plusY(View view){
-		cropY ++;		
-		editY.setText(cropY+"");
+		cropHight ++;		
+		editY.setText(cropHight+"");
 		updateImgArea();
 	}
 	
 	private void updateImgArea(){
 		if (editX.getText().length() == 0){
-			cropX = 0;
+			cropWidth = 0;
 		}else{
-			cropX = Integer.parseInt(editX.getText().toString().trim());
+			cropWidth = Integer.parseInt(editX.getText().toString().trim());
 		}
 		
 		if (editY.getText().length() == 0){
-			cropY = 0;
+			cropHight = 0;
 		}else{
-			cropY = Integer.parseInt(editY.getText().toString().trim());
+			cropHight = Integer.parseInt(editY.getText().toString().trim());
 		}
 		
 		if (capturedImage != null){
@@ -276,16 +314,35 @@ public class GamePenPrinter extends GameTemplateClass implements
 	
 	private void sendImgPart(){
 		if (isConnected()){
+			isPrinting = true;
 			sendImg = true;
-			toggleViews(true);
+			updateView(true);
 			
-			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, cropX, cropY, PART_SIZE); 
+			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE); 
 			
 			if (partsTotal > part){
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
 				//sendImgPart(part, partsTotal);
-				PenPrinterHelper.sendImgViaPart(capturedImage, cutSX, cutSY, cutSX+cropX, cutSY+cropY, part, partsTotal, PART_SIZE, this);
+				if (BWtrashold){
+					Imgproc.threshold(capturedImage, capturedImage, thrashold, 255, Imgproc.THRESH_BINARY);
+				}
+				
+				//log full image
+				Bitmap b1 = ImageConvertClass.cropImage(capturedImage, 0, 0, capturedImage.width(), capturedImage.height());
+				ImageLog.saveImageToFile(getApplicationContext(), b1, "b1");
+				Log.d("SVB", "w:" + b1.getWidth() + " h:" + b1.getHeight());
+				// log crop image
+				Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
+				ImageLog.saveImageToFile(getApplicationContext(), b2, "b2");
+				Log.d("SVB", "w:" + b2.getWidth() + " h:" + b2.getHeight());				
+				
+				boolean res = PenPrinterHelper.sendImgPart(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, part, partsTotal, PART_SIZE, this);
+				if (res){
+					Date date = new Date(System.currentTimeMillis());
+					String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
+					statusTv.append("\n end: " + time + "\n\n");
+				}
 				updateProgress(part, partsTotal);
 				
 			}else{
@@ -297,25 +354,51 @@ public class GamePenPrinter extends GameTemplateClass implements
 	}				
 	
 	private void updateProgress(int part, int totalParts){		
-		progressText.setText("part: " + part + " / " + totalParts);
+		progressTv.setText("part: " + part + " / " + totalParts);
 		progressBar.setMax(totalParts);
 		progressBar.setProgress(part);
 	}	
 	
-	private void toggleViews(boolean imageCaptured) {
+	private void updateView(boolean imageCaptured) {
 		
 		int show = (imageCaptured) ? View.VISIBLE : View.GONE; 
 		
 		btnCanny.setVisibility(show);
 		
 		btnThreshold.setVisibility(show);
-		ll_progress.setVisibility((sendImg) ? View.VISIBLE: View.GONE);
-		bw_threshold.setVisibility(BWtrashold ? View.VISIBLE: View.GONE);		
+		llProgress.setVisibility((sendImg) ? View.VISIBLE: View.GONE);
+		bwThresholdSb.setVisibility(BWtrashold ? View.VISIBLE: View.GONE);		
 							
 		btnSendCrop.setVisibility((!BWcanny && !BWtrashold) ? View.GONE : View.VISIBLE);
 		
 		btnCanny.setEnabled(!(BWcanny || BWtrashold));
-		btnThreshold.setEnabled(!(BWcanny || BWtrashold));		
+		btnThreshold.setEnabled(!(BWcanny || BWtrashold));
+		
+		if (isPrinting){
+			btnCanny.setEnabled(false);
+			btnThreshold.setEnabled(false);
+			btnSendCrop.setEnabled(false);
+			btnCaptureImage.setEnabled(false);
+			bwThresholdSb.setEnabled(false);
+			editX.setEnabled(false);
+			editY.setEnabled(false);
+			((Button)findViewById(R.id.plusx)).setEnabled(false);
+			((Button)findViewById(R.id.minusx)).setEnabled(false);
+			((Button)findViewById(R.id.plusy)).setEnabled(false);
+			((Button)findViewById(R.id.minusy)).setEnabled(false);
+	
+			if (statusTv.getText().length() == 0){
+				Date date = new Date(System.currentTimeMillis());
+				String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
+				statusTv.setText("log:\n"
+						+ " KEEP DEVICE ENOUGHT POWER !\n\n"
+						+ " xStart: " + cutFromX + "\n"
+						+ " yStart: " + cutFromY + "\n\n"
+						+ " start: " + time);
+			}
+		}
+		
+		
 	}
 	
 
@@ -395,13 +478,13 @@ public class GamePenPrinter extends GameTemplateClass implements
 
 	private void addSelectArea(Mat img){
 		Core.rectangle(img, 
-				new Point(cutSX-1, cutSY-1), new Point(cutSX+cropX+1, cutSY+cropY+1), 
+				new Point(cutFromX-1, cutFromY-1), new Point(cutFromX+cropWidth+1, cutFromY+cropHight+1), 
 				new Scalar(255, 255, 255), 1, 1, 0);
 		Core.rectangle(img, 
-				new Point(cutSX, cutSY), new Point(cutSX+cropX, cutSY+cropY), 
+				new Point(cutFromX, cutFromY), new Point(cutFromX+cropWidth, cutFromY+cropHight), 
 				new Scalar(0, 0, 0), 1, 1, 0);
 		Core.rectangle(img, 
-				new Point(cutSX+1, cutSY+1), new Point(cutSX+cropX-1, cutSY+cropY-1), 
+				new Point(cutFromX+1, cutFromY+1), new Point(cutFromX+cropWidth-1, cutFromY+cropHight-1), 
 				new Scalar(255, 255, 255), 1, 1, 0);
 	}
 	

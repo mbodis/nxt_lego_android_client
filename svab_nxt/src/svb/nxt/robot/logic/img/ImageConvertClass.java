@@ -64,17 +64,22 @@ public class ImageConvertClass {
 		return null;
 	}
 	
-	public static Bitmap cropImage(Mat mat, int w, int h){
+	public static Bitmap cropImage(Mat mat, int cropStartX, int cropStartY, int w, int h){
 		// Log.d("SSS", "cols:"+foto.cols() + "rows:"+foto.rows());			
 		Bitmap btm = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);			
 		org.opencv.android.Utils.matToBitmap(mat, btm);
-					
+		
+		int imgX = 0;
+		int imgY = 0;
 		Bitmap res = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-		for (int y = 0; y < h; y++) {
-    		for (int x = 0; x < w; x++) {
+		for (int y = cropStartY; y < cropStartY + h; y++) {
+    		for (int x = cropStartX; x < cropStartX+w; x++) {
 
-        		res.setPixel(x, y, btm.getPixel(x, y));				
+        		res.setPixel(imgX, imgY, btm.getPixel(x, y));
+        		imgX ++;
     		}
+    		imgY ++ ;
+    		imgX = 0;
 		}
 					
 		return res;	
