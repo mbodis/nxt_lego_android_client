@@ -2,7 +2,6 @@ package svb.nxt.robot.logic;
 
 import org.opencv.core.Mat;
 
-import svb.lib.log.MyLogger;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.logic.img.ImageConvertClass;
@@ -48,31 +47,33 @@ public class PenPrinterHelper{
 		
 		boolean end_row = false;
 		for (int r=0; r < cropHeight; r++){
-			for (int c=0; c < cropWidth / 8; c++){
+			for (int c=0; c < (cropWidth / 8); c++){
 				int from = r*cropWidth + c*8;
 				int to = from + 8;
 				byte bval = (byte) Integer.parseInt(sb.substring(from, to), 2);
 				
-				partSize++;							
+				partSize++;
 				
-				if (reading_part == part){
-					// MyLogger.addLog(this, "sending.txt", "part: " + part + " tot:" + partTotal + " reading:" + reading_part + " partSize:" + partSize);					
-					game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-					// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "DATA: " + sb.substring(from, to));
-										
-					// Log.d("SVB", "form:" + from + "to:" + to + "bin:" + sb.substring(from, to));
+				if (reading_part == part){					
 					if (end_row){
 						game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-						// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW LINE ");
+						//MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW LINE ");
 					}
+				}
+				
+				end_row = false;
+								
+				if (reading_part == part){
+					game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
+					// MyLogger.addLog(game, "sending.txt", "data:" + sb.substring(from, to)+" from: " + from+ " to:" + to + " c:" + c);
+					// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "DATA: " + sb.substring(from, to));
 				}
 				
 				if (partSize == PART_SIZE){
 					partSize = 0;
 					reading_part++;
-				}				
-				
-				end_row = false;
+				}			
+								
 			}
 			end_row = true;
 		}
