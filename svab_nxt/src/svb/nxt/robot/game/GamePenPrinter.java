@@ -84,7 +84,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 	
 	// view
 	private Button btnCaptureImage, btnCanny, btnThreshold,
-		btnSendCrop;
+		btnSendCrop, btnInvert;
 	private SeekBar bwThresholdSb;
 	private ProgressBar progressBar;
 	private TextView progressTv, statusTv;
@@ -241,7 +241,16 @@ public class GamePenPrinter extends GameTemplateClass implements
 					updateView(true);
 				}
 			}
-		});			
+		});	
+		btnInvert = (Button) findViewById(R.id.btnInvert);
+		btnInvert.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				capturedImage = ImageConvertClass.invertImage(capturedImage);
+				updateImgArea();
+			}
+		});	
 		
 		statusTv = ((TextView) findViewById(R.id.status));
 		statusTv.setText("");
@@ -312,16 +321,15 @@ public class GamePenPrinter extends GameTemplateClass implements
 		}
 	}
 	
-	private void sendImgPart(){
+	private void sendImgPart(){		
 		
 		// log full image
 		Bitmap b1 = ImageConvertClass.cropImage(capturedImage, 0, 0, capturedImage.width(), capturedImage.height());
-		ImageLog.saveImageToFile(getApplicationContext(), b1, "p1");
-		Log.d("SVB", "w:" + b1.getWidth() + " h:" + b1.getHeight());
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "p1");		 
 		// log crop image
 		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
 		ImageLog.saveImageToFile(getApplicationContext(), b2, "p2");
-		Log.d("SVB", "w:" + b2.getWidth() + " h:" + b2.getHeight());
+		 
 		
 		if (isConnected()){
 			isPrinting = true;
@@ -368,8 +376,9 @@ public class GamePenPrinter extends GameTemplateClass implements
 		
 		btnThreshold.setVisibility(show);
 		llProgress.setVisibility((sendImg) ? View.VISIBLE: View.GONE);
-		bwThresholdSb.setVisibility(BWtrashold ? View.VISIBLE: View.GONE);		
-							
+		bwThresholdSb.setVisibility(BWtrashold ? View.VISIBLE: View.GONE);
+		
+		btnInvert.setVisibility((!BWcanny && !BWtrashold) ? View.GONE : View.VISIBLE);					
 		btnSendCrop.setVisibility((!BWcanny && !BWtrashold) ? View.GONE : View.VISIBLE);
 		
 		btnCanny.setEnabled(!(BWcanny || BWtrashold));

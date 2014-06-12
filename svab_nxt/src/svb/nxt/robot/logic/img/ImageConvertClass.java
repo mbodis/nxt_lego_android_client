@@ -4,7 +4,6 @@ import org.opencv.core.Mat;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 public class ImageConvertClass {
 
@@ -63,18 +62,37 @@ public class ImageConvertClass {
 	}
 	
 	/**
-	 * ARGB MAT image ktory je B&W sa inverrtuje
+	 * 
 	 * @param mat ARGB org.opencv.core.MAT 
 	 * @return inverted image
 	 */
-	public static Mat invertBWImage(Mat mat){
-		// TODO 
-		return null;
+	public static Mat invertImage(Mat mat){
+		Mat res = mat.clone();//new Mat(mat.width(), mat.height(), CvType.CV_8U);
+		for (int y=0;y<mat.width(); y++){
+			for (int x=0;x<mat.height(); x++){
+				/**
+				 * binary values
+				 */
+				// dd.length == 1
+				// dd[0] == 0.0 | d[0] == 255.0
+				
+				/**
+				 * grayscale values
+				 */
+				// dd.length == 1
+				// dd[0] == [0.0 , 255.0] //from zero to 255
+				
+				
+				double[] dd = mat.get(x, y);				
+				res.put(x, y, Math.abs(255-dd[0]));
+			}
+		}
+		return res;
 	}
 	
 	public static Bitmap cropImage(Mat mat, int cropStartX, int cropStartY, int cropWidth, int cropHeight){
-		Log.d("SSS", "mat cols:"+mat.cols() + "rows:"+mat.rows());			
-		Log.d("SSS", "csX: " + cropStartX + " csY: " + cropStartY + "cw: " + cropWidth + " ch: " + cropHeight);
+		//Log.d("SSS", "mat cols:"+mat.cols() + "rows:"+mat.rows());			
+		//Log.d("SSS", "csX: " + cropStartX + " csY: " + cropStartY + "cw: " + cropWidth + " ch: " + cropHeight);
 		Bitmap btm = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);			
 		org.opencv.android.Utils.matToBitmap(mat, btm);
 		

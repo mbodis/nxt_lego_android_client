@@ -132,6 +132,13 @@
                     android:visibility="visible" />
             </LinearLayout>
 
+            <Button
+                    android:id="@+id/btnInvert"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"                    
+                    android:text=" \\ Invert \\ "
+                    android:visibility="visible" />
+            
             <SeekBar
                 android:id="@+id/bw_threshold"
                 android:layout_width="match_parent"
