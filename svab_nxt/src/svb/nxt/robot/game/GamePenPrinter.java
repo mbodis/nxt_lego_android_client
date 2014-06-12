@@ -94,6 +94,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 	// selected image
 	private Mat capturedImage = null;
 	private Mat printImage = null; // capture img + sqare area
+	private static Mat sendImage; // sending
 	
 	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
 	int cropWidth = 96; // 8 * 12 default size
@@ -236,7 +237,8 @@ public class GamePenPrinter extends GameTemplateClass implements
 			public void onClick(View v) {
 				if (cropWidth % 8 != 0){
 					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
-				}else{					
+				}else{				
+					sendImage = capturedImage.clone();
 					sendImgPart();
 					updateView(true);
 				}
@@ -324,11 +326,11 @@ public class GamePenPrinter extends GameTemplateClass implements
 	private void sendImgPart(){		
 		
 		// log full image
-		Bitmap b1 = ImageConvertClass.cropImage(capturedImage, 0, 0, capturedImage.width(), capturedImage.height());
-		ImageLog.saveImageToFile(getApplicationContext(), b1, "p1");		 
+		Bitmap b1 = ImageConvertClass.matToBitmap(sendImage );
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_img");		 
 		// log crop image
-		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
-		ImageLog.saveImageToFile(getApplicationContext(), b2, "p2");
+		Bitmap b2 = ImageConvertClass.cropImage(sendImage , cutFromX, cutFromY, cropWidth, cropHight);
+		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_img_print");
 		 
 		
 		if (isConnected()){
@@ -336,17 +338,17 @@ public class GamePenPrinter extends GameTemplateClass implements
 			sendImg = true;
 			updateView(true);
 			
-			int partsTotal = PenPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE); 
+			int partsTotal = PenPrinterHelper.getCountImageParts(sendImage , cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE); 
 			
 			if (partsTotal > part){
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();			
 				//sendImgPart(part, partsTotal);
 				if (BWtrashold){
-					Imgproc.threshold(capturedImage, capturedImage, thrashold, 255, Imgproc.THRESH_BINARY);
+					Imgproc.threshold(sendImage , sendImage , thrashold, 255, Imgproc.THRESH_BINARY);
 				}
 				
-				boolean res = PenPrinterHelper.sendImgPart(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, part, partsTotal, PART_SIZE, this);
+				boolean res = PenPrinterHelper.sendImgPart(sendImage , cutFromX, cutFromY, cropWidth, cropHight, part, partsTotal, PART_SIZE, this);
 				if (res){
 					Date date = new Date(System.currentTimeMillis());
 					String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
@@ -388,6 +390,7 @@ public class GamePenPrinter extends GameTemplateClass implements
 			btnCanny.setEnabled(false);
 			btnThreshold.setEnabled(false);
 			btnSendCrop.setEnabled(false);
+			btnInvert.setEnabled(false);
 			btnCaptureImage.setEnabled(false);
 			bwThresholdSb.setEnabled(false);
 			editX.setEnabled(false);

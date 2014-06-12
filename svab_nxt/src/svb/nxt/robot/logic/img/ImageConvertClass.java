@@ -141,7 +141,7 @@ public class ImageConvertClass {
 		return sb;
 	}
 	
-	public static StringBuilder getImagetoByteStr(Bitmap b){
+	public static int[] getImagetoIntArr(Bitmap b){
 		// TODO 
 		return null;
 	}

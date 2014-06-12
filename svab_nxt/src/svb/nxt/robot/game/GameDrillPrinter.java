@@ -24,7 +24,6 @@ import svb.nxt.robot.bt.BTControls;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.DrillPrinterHelper;
 import svb.nxt.robot.logic.GameTemplateClass;
-
 import svb.nxt.robot.logic.img.ImageConvertClass;
 import svb.nxt.robot.logic.img.ImageLog;
 import android.graphics.Bitmap;
@@ -47,8 +46,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,7 +71,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	
 	// view
 	private Button btnCaptureImage, btnHist,
-		btnSendCrop;
+		btnSendCrop, btnInvert;
 	
 	private ProgressBar progressBar;
 	private TextView progressTv, statusTv;
@@ -194,7 +191,15 @@ public class GameDrillPrinter extends GameTemplateClass implements
 					updateView(true);
 				}
 			}
-		});			
+		});		
+		btnInvert = (Button) findViewById(R.id.btnInvert);
+		btnInvert .setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				capturedImage = ImageConvertClass.invertImage(capturedImage);
+			}
+		});
 		
 		statusTv = ((TextView) findViewById(R.id.status));
 		statusTv.setText("");
@@ -265,13 +270,12 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	private void sendImgPart(){
 		
 		//log full image
-		Bitmap b1 = ImageConvertClass.cropImage(capturedImage, 0, 0, capturedImage.width(), capturedImage.height());
-		ImageLog.saveImageToFile(getApplicationContext(), b1, "d1");
-		Log.d("SVB", "w:" + b1.getWidth() + " h:" + b1.getHeight());
+		Bitmap b1 = ImageConvertClass.matToBitmap(capturedImage);
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image");		
 		// log crop image
 		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
-		ImageLog.saveImageToFile(getApplicationContext(), b2, "d 2");
-		Log.d("SVB", "w:" + b2.getWidth() + " h:" + b2.getHeight());
+		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_iamge_print");
+		
 		
 		if (isConnected()){
 			isPrinting = true;
@@ -311,12 +315,14 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		int show = (imageCaptured) ? View.VISIBLE : View.GONE; 
 		
 		btnHist.setVisibility(show);				
-		btnSendCrop.setVisibility(show);				
+		btnSendCrop.setVisibility(show);
+		btnInvert.setVisibility(show);
 		llProgress.setVisibility((sendImg) ? View.VISIBLE: View.GONE);										
 		
 		if (isPrinting){
 			btnHist.setEnabled(false);
 			btnSendCrop.setEnabled(false);
+			btnInvert.setEnabled(false);
 			btnCaptureImage.setEnabled(false);
 			editX.setEnabled(false);
 			editY.setEnabled(false);

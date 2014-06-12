@@ -2,6 +2,10 @@ package svb.nxt.robot.logic;
 
 import org.opencv.core.Mat;
 
+import svb.nxt.robot.logic.img.ImageConvertClass;
+import android.graphics.Bitmap;
+import android.util.Log;
+
 /**
  * 
  * @author svab
@@ -55,8 +59,14 @@ public class DrillPrinterHelper {
 	 */
 	public static int getCountImageParts(Mat capturedImage, int cutFromX,
 			int cutFromY, int cropWidth, int cropHeight, int PART_SIZE) {
-		// TODO
-		return 0;
+		Bitmap b = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight);
+		int[] arr = ImageConvertClass.getImagetoIntArr(b);
+		
+		int len = arr.length;
+		int totalParts = len/(PART_SIZE) + (((len % (PART_SIZE))>0)? 1 : 0);
+		Log.d("SVB", "totalParts: " + totalParts);
+		
+		return totalParts;
 	}
 
 }

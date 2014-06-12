@@ -224,7 +224,7 @@
             android:background="@drawable/my_black_white_selector"
             android:onClick="hide"
             android:padding="10dp"
-            android:text="hide" />
+            android:text="@string/pen_printer_hide" />
     </LinearLayout>
 
 </RelativeLayout>
