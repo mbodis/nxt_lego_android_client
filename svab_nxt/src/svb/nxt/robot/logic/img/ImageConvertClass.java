@@ -1,5 +1,7 @@
 package svb.nxt.robot.logic.img;
 
+import java.util.ArrayList;
+
 import org.opencv.core.Mat;
 
 import android.graphics.Bitmap;
@@ -141,8 +143,28 @@ public class ImageConvertClass {
 		return sb;
 	}
 	
-	public static int[] getImagetoIntArr(Bitmap b){
-		// TODO 
-		return null;
+	public static ArrayList<Integer> getImagetoIntList(Bitmap bitmap){
+		
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		
+		int height = bitmap.getHeight();
+        int width = bitmap.getWidth();
+		int pixelColor;  int A, R, G, B;
+		
+        	for (int y = 0; y < height; y++) {
+        		for (int x = 0; x < width; x++) {
+
+	        		pixelColor = bitmap.getPixel(x, y);
+					A = Color.alpha(pixelColor); // always 255
+					// R == G == B 
+					R = Color.red(pixelColor); 
+					G = Color.green(pixelColor);
+					B = Color.blue(pixelColor);
+					//Log.d("SVB", "pix:" + pixelColor + "A:" + A + "R:" + R + "G:" + G + "B:" + B);
+					list.add(R);
+        		}
+        	}
+
+		return list;
 	}
 }

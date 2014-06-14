@@ -183,24 +183,42 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/my_black_white_selector"
-            android:onClick="penHeadDown"
-            android:padding="10dp"
-            android:text="@string/print_test_pen_head_down" />
+            android:onClick="penHeadDownMin"
+            android:padding="5dp"
+            android:text="down-min" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/my_black_white_selector"
+            android:onClick="penHeadUpMin"
+            android:padding="5dp"
+            android:text="up-min" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/my_black_white_selector"
-            android:onClick="penHeadUp"
-            android:padding="10dp"
-            android:text="@string/print_test_pen_head_up" />
+            android:onClick="penHeadDownMax"
+            android:padding="5dp"
+            android:text="down-max" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/my_black_white_selector"
+            android:onClick="penHeadUpMax"
+            android:padding="5dp"
+            android:text="up-max" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/my_black_white_selector"
             android:onClick="hide"
-            android:padding="10dp"
+            android:padding="5dp"
             android:text="@string/drill_printer_hide" />
     </LinearLayout>
 

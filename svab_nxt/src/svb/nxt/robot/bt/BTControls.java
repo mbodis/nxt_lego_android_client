@@ -100,4 +100,10 @@ public class BTControls {
 	/**
 	 * DRILL PRINTER
 	 */
+	public static final int DRILL_DISTANCE_CHECK_LOW = 60;
+	public static final int DRILL_DISTANCE_CHECK_DEEP = 61;
+	public static final int DRILL_MIN_DOWN = 62;
+	public static final int DRILL_MIN_UP = 63;
+	public static final int DRILL_MAX_DOWN = 64;
+	public static final int DRILL_MAX_UP = 65;
 }

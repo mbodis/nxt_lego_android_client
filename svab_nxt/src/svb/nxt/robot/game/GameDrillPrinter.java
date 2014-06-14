@@ -1,6 +1,7 @@
 package svb.nxt.robot.game;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
@@ -207,16 +208,28 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		updateView(false);
 	}
 	
-	public void penHeadDown(View view){
+	public void penHeadDownMin(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.PEN_DOWN, 0);
+					BTControls.DRILL_MIN_DOWN, 0);
 		}
 	}
-	public void penHeadUp(View view){
+	public void penHeadUpMin(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.PEN_UP, 0);
+					BTControls.DRILL_MIN_UP, 0);
+		}
+	}
+	public void penHeadDownMax(View view){
+		if (isConnected()){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					BTControls.DRILL_MAX_DOWN, 0);
+		}
+	}
+	public void penHeadUpMax(View view){
+		if (isConnected()){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					BTControls.DRILL_MAX_UP, 0);
 		}
 	}
 	
@@ -275,7 +288,24 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		// log crop image
 		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
 		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_iamge_print");
-		
+//log test		
+//		ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
+//		Log.d("SVB", "l.size="+ l.size());
+//		for (int i = 0; i < 10; i++) {
+//			Log.d("SVB", "l["+i+"].size="+ l.get(i));
+//		}
+//		for (int i = l.size()-10; i < l.size(); i++) {
+//			Log.d("SVB", "l["+i+"].size="+ l.get(i));
+//		}
+//		int pT= DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE);
+//		Log.d("SVB", "partsTotal:" + pT);
+//		
+//		int cnt = 0; 
+//		for (int a : l) {
+//			cnt += a;
+//		}
+//		
+//		Log.d("SVB", "count:" + cnt);
 		
 		if (isConnected()){
 			isPrinting = true;
