@@ -242,9 +242,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 80"
+            android:hint="default: 60"
             android:inputType="number"
-            android:text="80" >
+            android:text="60" >
             
         </EditText>
 
@@ -259,9 +259,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 230"
+            android:hint="default: 210"
             android:inputType="number"
-            android:text="230" />
+            android:text="210" />
         
         <TextView            
             android:layout_width="wrap_content"
@@ -275,9 +275,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 6"
+            android:hint="default: 4"
             android:inputType="number"
-            android:text="6" />
+            android:text="4" />
         
         <TextView            
             android:layout_width="wrap_content"
@@ -291,9 +291,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 10"
+            android:hint="default: 12"
             android:inputType="number"
-            android:text="10" />
+            android:text="12" />
 
     </LinearLayout>
 
