@@ -78,6 +78,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	private TextView progressTv, statusTv;
 	private LinearLayout llProgress;
 	private EditText editX, editY;
+	private EditText drillMin, drillMax, drillHeadMove, drillSpeed;
 	
 	// selected image
 	private Mat capturedImage = null;
@@ -142,6 +143,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			@Override
 			public boolean onLongClick(View v) {
 				((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.VISIBLE);
+				((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.VISIBLE);
 				return false;
 			}
 		});
@@ -179,6 +181,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		editX.addTextChangedListener(tv);
 		editY = (EditText) findViewById(R.id.cropY);
 		editY.addTextChangedListener(tv);
+		drillMin = (EditText) findViewById(R.id.drillmin);
+		drillMax = (EditText) findViewById(R.id.drillmax);
+		drillHeadMove = (EditText) findViewById(R.id.drillhead);
+		drillSpeed = (EditText) findViewById(R.id.drillspeed);
 		
 		btnSendCrop = (Button) findViewById(R.id.btnSendCrop);
 		btnSendCrop.setOnClickListener(new OnClickListener() {
@@ -205,36 +211,38 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		statusTv = ((TextView) findViewById(R.id.status));
 		statusTv.setText("");
 		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
+		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
 		updateView(false);
 	}
 	
 	public void penHeadDownMin(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MIN_DOWN, 0);
+					BTControls.DRILL_MIN_DOWN, Integer.parseInt(drillMin.getText().toString().trim())/2);
 		}
 	}
 	public void penHeadUpMin(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MIN_UP, 0);
+					BTControls.DRILL_MIN_UP, Integer.parseInt(drillMin.getText().toString().trim())/2);
 		}
 	}
 	public void penHeadDownMax(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MAX_DOWN, 0);
+					BTControls.DRILL_MAX_DOWN, Integer.parseInt(drillMax.getText().toString().trim())/2);
 		}
 	}
 	public void penHeadUpMax(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MAX_UP, 0);
+					BTControls.DRILL_MAX_UP, Integer.parseInt(drillMax.getText().toString().trim())/2);
 		}
 	}
 	
 	public void hide(View view){
 		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
+		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
 	}
 	
 	public void minusX(View view){
@@ -535,6 +543,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	public void onConnectToDevice() {
 		sendBTCmessage(BTCommunicator.NO_DELAY,
 				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_DRILL_PRINTER, 0);		
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.GAME_TYPE, BTControls.DRILL_HEAD_MOVE, Integer.parseInt(drillHeadMove.getText().toString().trim()));
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.GAME_TYPE, BTControls.DRILL_SPEED, Integer.parseInt(drillSpeed.getText().toString().trim()));
 	}
 
 	@Override

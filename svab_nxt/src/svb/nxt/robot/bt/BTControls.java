@@ -106,4 +106,6 @@ public class BTControls {
 	public static final int DRILL_MIN_UP = 63;
 	public static final int DRILL_MAX_DOWN = 64;
 	public static final int DRILL_MAX_UP = 65;
+	public static final int DRILL_HEAD_MOVE = 66; //row / column
+	public static final int DRILL_SPEED = 67;
 }
