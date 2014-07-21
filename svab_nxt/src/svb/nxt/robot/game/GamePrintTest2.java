@@ -117,7 +117,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {
 				if (capturedImage != null){			
-					ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.matToBitmap(capturedImage));
+					ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.matToBitmap(capturedImage), null);
 				}								
 			}
 		});		
@@ -139,7 +139,7 @@ public class GamePrintTest2 extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {	
-				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 0, 0, 96, 60));
+				ImageLog.saveImageToFile(GamePrintTest2.this, ImageConvertClass.cropImage(capturedImage, 0, 0, 96, 60), null);
 			}
 		});
 		

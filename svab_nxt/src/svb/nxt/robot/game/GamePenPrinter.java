@@ -327,10 +327,10 @@ public class GamePenPrinter extends GameTemplateClass implements
 		
 		// log full image
 		Bitmap b1 = ImageConvertClass.matToBitmap(sendImage );
-		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_img");		 
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_img.jpg");		 
 		// log crop image
 		Bitmap b2 = ImageConvertClass.cropImage(sendImage , cutFromX, cutFromY, cropWidth, cropHight);
-		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_img_print");
+		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_img_print.jpg");
 		 
 		
 		if (isConnected()){

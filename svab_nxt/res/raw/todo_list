@@ -1,11 +1,6 @@
 TODO LIST:
-		
-- drill printer 
-	- printing progress
-	- GUI: capture img grayscale, progress - set trashhold, set sizeXY, print
-	- zohnat vrtak 
 
 NEW FEATURES:
-- spravit list prikazov kt. robot vykonava(moznost ich dragovanim prenasat)
+- create list of commands (use drad and drop to reoreder)
 - gyroscope - segway
-- move by colors - opravit (nastavitelne farby), ON OFF spustanie 
+- move by colors - update (option to set color), ON/OFF start

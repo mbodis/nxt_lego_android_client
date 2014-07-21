@@ -293,7 +293,7 @@
             android:ems="10"
             android:hint="default: 12"
             android:inputType="number"
-            android:text="12" />
+            android:text="36" />
 
     </LinearLayout>
 

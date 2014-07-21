@@ -193,7 +193,8 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			public void onClick(View v) {
 				if (cropWidth % 8 != 0){
 					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
-				}else{					
+				}else{
+					ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(capturedImage), ImageLog.PRINT_IMAGE);
 					sendImgPart();
 					updateView(true);
 				}
@@ -213,6 +214,8 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
 		updateView(false);
+		
+		Toast.makeText(thisActivity, "max size 320 x 320px", Toast.LENGTH_LONG).show();
 	}
 	
 	public void penHeadDownMin(View view){
@@ -290,12 +293,14 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	
 	private void sendImgPart(){
 		
+		capturedImage = ImageConvertClass.bitmapToMat(ImageLog.getImageFromFile(thisActivity, ImageLog.PRINT_IMAGE));
+		
 		//log full image
 		Bitmap b1 = ImageConvertClass.matToBitmap(capturedImage);
-		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image");		
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image.jpg");		
 		// log crop image
 		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
-		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_iamge_print");
+		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_image_print.jpg");
 //log test		
 //		ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
 //		Log.d("SVB", "l.size="+ l.size());

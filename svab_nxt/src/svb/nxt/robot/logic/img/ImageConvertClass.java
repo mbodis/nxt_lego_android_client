@@ -2,7 +2,10 @@ package svb.nxt.robot.logic.img;
 
 import java.util.ArrayList;
 
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -26,6 +29,17 @@ public class ImageConvertClass {
 		// Bitmap res = Bitmap.createBitmap(btm, 0, 0, 100, 100); // crop image
 		
 		return btm;			
+	}
+	
+	
+	public static Mat bitmapToMat(Bitmap bitmap){
+		
+		Mat ImageMat = new Mat ( bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8U, new Scalar(4));
+		Bitmap myBitmap32 = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+		Utils.bitmapToMat(myBitmap32, ImageMat);
+
+		
+		return ImageMat;
 	}
 	
 	/**
