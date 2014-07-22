@@ -218,6 +218,11 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		Toast.makeText(thisActivity, "max size 320 x 320px", Toast.LENGTH_LONG).show();
 	}
 	
+	public void toggle(View v){
+		int vis =  ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE); 
+		findViewById(R.id.linearLayout1).setVisibility(vis);		
+	}
+	
 	public void penHeadDownMin(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
