@@ -1,7 +1,6 @@
 package svb.nxt.robot.game;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
@@ -22,6 +21,7 @@ import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTConnectable;
 import svb.nxt.robot.bt.BTControls;
+import svb.nxt.robot.dialog.HelpDialog;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.DrillPrinterHelper;
 import svb.nxt.robot.logic.GameTemplateClass;
@@ -30,6 +30,8 @@ import svb.nxt.robot.logic.img.ImageLog;
 import android.graphics.Bitmap;
 import android.hardware.Camera.Size;
 import android.os.Message;
+import svb.nxt.robot.dialog.HelpDialog;
+import android.app.DialogFragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -86,7 +88,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	
 	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
 	int cropWidth = 8*12; // default size
-	int cropHight = 60;	// default size
+	int cropHeight = 60;	// default size
 	int PART_SIZE = 100; 
 	int cutFromX = 0;
 	int cutFromY = 0;
@@ -106,7 +108,13 @@ public class GameDrillPrinter extends GameTemplateClass implements
 				if (!isPrinting){
 					if (event.getAction() == MotionEvent.ACTION_DOWN){
 						cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
-						cutFromY = (int)event.getY() - cropHight/2;					
+						cutFromY = (int)event.getY() - cropHeight/2;
+						
+						cutFromX = (cutFromX<0)? 0 : cutFromX;
+						cutFromX = (cutFromX>mOpenCvCameraView.getWidth())? mOpenCvCameraView.getWidth()-1 : cutFromX;
+						
+						cutFromY = (cutFromY<0)? 0 : cutFromY;
+						cutFromY = (cutFromY>mOpenCvCameraView.getHeight())? mOpenCvCameraView.getHeight() : cutFromY;
 						updateImgArea();
 					}
 				}
@@ -137,16 +145,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 				updateView(true);
 			}
 
-		});	
-		btnCaptureImage.setOnLongClickListener(new OnLongClickListener() {
-			
-			@Override
-			public boolean onLongClick(View v) {
-				((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.VISIBLE);
-				((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.VISIBLE);
-				return false;
-			}
-		});
+		});		
 		
 		btnHist = (Button) findViewById(R.id.btnHist);
 		btnHist.setOnClickListener(new OnClickListener() {
@@ -193,6 +192,9 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			public void onClick(View v) {
 				if (cropWidth % 8 != 0){
 					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
+				}else if(cutFromX + cropWidth > mOpenCvCameraView.getWidth() 
+						|| cutFromY + cropHeight > mOpenCvCameraView.getHeight() ){
+					Toast.makeText(thisActivity, "selected crop is out of screen, please remove it", Toast.LENGTH_SHORT).show();
 				}else{
 					ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(capturedImage), ImageLog.PRINT_IMAGE);
 					sendImgPart();
@@ -206,6 +208,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			@Override
 			public void onClick(View v) {
 				capturedImage = ImageConvertClass.invertImage(capturedImage);
+				updateImgArea();
 			}
 		});
 		
@@ -215,7 +218,21 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
 		updateView(false);
 		
-		Toast.makeText(thisActivity, "max size 320 x 320px", Toast.LENGTH_LONG).show();
+		
+	}
+	public void moreOptions(View v){
+		int visi = (findViewById(R.id.help_ll).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE;
+		
+		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(visi);
+		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(visi);
+		
+		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(visi);
+		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(visi);
+	} 
+	
+	public void showInfo(View v){
+		DialogFragment newFragment = HelpDialog.newInstance("Black color == drill low\nWhite color == drill deep\n\n 320x320 max size", HelpDialog.TYPE_HELP);
+	    newFragment.show(getFragmentManager(), HelpDialog.TAG);
 	}
 	
 	public void toggle(View v){
@@ -248,11 +265,6 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		}
 	}
 	
-	public void hide(View view){
-		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
-		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
-	}
-	
 	public void minusX(View view){
 		if (cropWidth>0){
 			cropWidth --;
@@ -266,15 +278,15 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	}
 	
 	public void minusY(View view){
-		if (cropHight>0){
-			cropHight --;
+		if (cropHeight>0){
+			cropHeight --;
 		}
-		editY.setText(cropHight+"");
+		editY.setText(cropHeight+"");
 		updateImgArea();
 	}			
 	public void plusY(View view){
-		cropHight ++;		
-		editY.setText(cropHight+"");
+		cropHeight ++;		
+		editY.setText(cropHeight+"");
 		updateImgArea();
 	}
 	
@@ -286,9 +298,9 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		}
 		
 		if (editY.getText().length() == 0){
-			cropHight = 0;
+			cropHeight = 0;
 		}else{
-			cropHight = Integer.parseInt(editY.getText().toString().trim());
+			cropHeight = Integer.parseInt(editY.getText().toString().trim());
 		}
 		
 		if (capturedImage != null){
@@ -304,7 +316,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		Bitmap b1 = ImageConvertClass.matToBitmap(capturedImage);
 		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image.jpg");		
 		// log crop image
-		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHight);
+		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight);
 		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_image_print.jpg");
 //log test		
 //		ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
@@ -330,13 +342,13 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			sendImg = true;
 			updateView(true);
 			
-			int partsTotal = DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE); 
+			int partsTotal = DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight, PART_SIZE); 
 			
 			if (partsTotal > part){
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();
 															
-				boolean res = DrillPrinterHelper.sendImgPart(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, part, partsTotal, PART_SIZE, this);
+				boolean res = DrillPrinterHelper.sendImgPart(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight, part, partsTotal, PART_SIZE, this);
 				if (res){
 					Date date = new Date(System.currentTimeMillis());
 					String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
@@ -471,13 +483,13 @@ public class GameDrillPrinter extends GameTemplateClass implements
 
 	private void addSelectArea(Mat img){
 		Core.rectangle(img, 
-				new Point(cutFromX-1, cutFromY-1), new Point(cutFromX+cropWidth+1, cutFromY+cropHight+1), 
+				new Point(cutFromX-1, cutFromY-1), new Point(cutFromX+cropWidth+1, cutFromY+cropHeight+1), 
 				new Scalar(255, 255, 255), 1, 1, 0);
 		Core.rectangle(img, 
-				new Point(cutFromX, cutFromY), new Point(cutFromX+cropWidth, cutFromY+cropHight), 
+				new Point(cutFromX, cutFromY), new Point(cutFromX+cropWidth, cutFromY+cropHeight), 
 				new Scalar(0, 0, 0), 1, 1, 0);
 		Core.rectangle(img, 
-				new Point(cutFromX+1, cutFromY+1), new Point(cutFromX+cropWidth-1, cutFromY+cropHight-1), 
+				new Point(cutFromX+1, cutFromY+1), new Point(cutFromX+cropWidth-1, cutFromY+cropHeight-1), 
 				new Scalar(255, 255, 255), 1, 1, 0);
 	}
 	

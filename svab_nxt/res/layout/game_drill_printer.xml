@@ -31,9 +31,23 @@
                     android:id="@+id/btnCapture"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.75"
+                    android:layout_weight="0.45"
                     android:drawableLeft="@android:drawable/ic_menu_camera"
                     android:text="caputre" />
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.20"
+                    android:drawableLeft="@android:drawable/ic_menu_search"
+                    android:onClick="moreOptions" />
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.20"
+                    android:drawableLeft="@android:drawable/ic_menu_help"
+                    android:onClick="showInfo" />
             </LinearLayout>
 
             <LinearLayout
@@ -220,13 +234,6 @@
             android:padding="5dp"
             android:text="up-max" />
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/my_black_white_selector"
-            android:onClick="hide"
-            android:padding="5dp"
-            android:text="@string/drill_printer_hide" />
     </LinearLayout>
 
     <LinearLayout
