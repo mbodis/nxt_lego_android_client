@@ -2,10 +2,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".game.GamePrintTest2" >
+    tools:context=".game.GameDrillPrinter" >
 
     <svb.nxt.robot.game.opencv.OpenCVColorView
         android:id="@+id/tutorial3_activity_java_surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/iv_from_file"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />
@@ -28,26 +34,54 @@
                 android:weightSum="1" >
 
                 <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.40"
+                    android:drawableTop="@android:drawable/ic_menu_more"
+                    android:onClick="moreOptions"
+                    android:text="settings" />
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.40"
+                    android:drawableTop="@android:drawable/ic_menu_help"
+                    android:onClick="showInfo"
+                    android:text="help" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:weightSum="1" >
+
+                <Button
                     android:id="@+id/btnCapture"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.45"
-                    android:drawableLeft="@android:drawable/ic_menu_camera"
-                    android:text="caputre" />
+                    android:layout_weight="0.5"
+                    android:drawableTop="@android:drawable/ic_menu_camera"
+                    android:text="take photo"
+                    android:visibility="visible" />
 
                 <Button
+                    android:id="@+id/btnLoadImg"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.20"
-                    android:drawableLeft="@android:drawable/ic_menu_search"
-                    android:onClick="moreOptions" />
-
+                    android:layout_weight="0.50"
+                    android:drawableTop="@android:drawable/ic_menu_gallery"
+                    android:text="load img" 
+                    android:visibility="visible"/>
+                
                 <Button
+                    android:id="@+id/btnReset"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.20"
-                    android:drawableLeft="@android:drawable/ic_menu_help"
-                    android:onClick="showInfo" />
+                    android:layout_weight="1"
+                    android:drawableTop="@android:drawable/ic_menu_close_clear_cancel"
+                    android:text="reset" 
+                    android:visibility="gone"/>
             </LinearLayout>
 
             <LinearLayout
@@ -233,7 +267,6 @@
             android:onClick="penHeadUpMax"
             android:padding="5dp"
             android:text="up-max" />
-
     </LinearLayout>
 
     <LinearLayout

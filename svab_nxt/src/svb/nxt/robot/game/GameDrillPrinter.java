@@ -1,5 +1,6 @@
 package svb.nxt.robot.game;
 
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -27,11 +28,14 @@ import svb.nxt.robot.logic.DrillPrinterHelper;
 import svb.nxt.robot.logic.GameTemplateClass;
 import svb.nxt.robot.logic.img.ImageConvertClass;
 import svb.nxt.robot.logic.img.ImageLog;
-import android.graphics.Bitmap;
-import android.hardware.Camera.Size;
-import android.os.Message;
-import svb.nxt.robot.dialog.HelpDialog;
 import android.app.DialogFragment;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.Camera.Size;
+import android.net.Uri;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -42,23 +46,34 @@ import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
-TODO
+ * 
+ * @author mbodis
+ *
+ * drill printer
+ * 1) select image from camera or choose form file
+ * 2) image filters(equalize histogram, invert image)
+ * 3) customize printer setting (drill head position, speed, movement rotation)
+ * 4) do the print - sending image by parts (because of small memory in NXT)   
  */
 public class GameDrillPrinter extends GameTemplateClass implements
 		CvCameraViewListener2, BTConnectable {
 	
-	// image processing
+	private static final int SELECT_PHOTO = 100;
+	
+	/**
+	 * CAMERA VIEW PREFS
+	 */ 
 	private static final String TAG = "GamePrintFoto::Activity";
 	private OpenCVColorView mOpenCvCameraView;
 	private List<Size> mResolutionList;
@@ -67,24 +82,46 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
 	
-	// printer customize
-	private boolean doCapture = false;
+	/**
+	 * PRINTER STATES
+	 */
+	
+	/** just for one interval - catch frame form camera view - toggle token **/
+	private boolean doCapture = false; 
+	/** show send button **/
 	private boolean sendImg = false;
+	/** if image was send - disable everything **/
 	private boolean isPrinting = false;
 	
-	// view
-	private Button btnCaptureImage, btnHist,
-		btnSendCrop, btnInvert;
 	
+	/** 
+	 * VIEWS IN ORDER IN LAYOUT
+	 */
+	private Button btnCaptureImage, btnLoadImg, btnReset;
+	private Button btnHist, btnInvert, btnSendCrop; 	
 	private ProgressBar progressBar;
 	private TextView progressTv, statusTv;
+	private ImageView ivImageFile;
 	private LinearLayout llProgress;
 	private EditText editX, editY;
 	private EditText drillMin, drillMax, drillHeadMove, drillSpeed;
 	
-	// selected image
+	/**
+	 * SELECTED IMAGE
+	 */
+	
+	/** selected image - capturing **/
+	private boolean imgCaptured = false;
 	private Mat capturedImage = null;
-	private Mat printImage = null; // capture img + sqare area
+	private Mat capturePrintImage = null; // capture img + sqare area
+	
+	/** selected image - select form folder **/
+	private boolean imgLoaded = false;
+	private Mat loadImage = null;
+	private Mat loadPrintImage = null; // capture img + sqare area
+	
+	/** img to printing **/
+	private Mat finalImage = null;
 	
 	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
 	int cropWidth = 8*12; // default size
@@ -105,56 +142,78 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if (!isPrinting){
-					if (event.getAction() == MotionEvent.ACTION_DOWN){
-						cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
-						cutFromY = (int)event.getY() - cropHeight/2;
-						
-						cutFromX = (cutFromX<0)? 0 : cutFromX;
-						cutFromX = (cutFromX>mOpenCvCameraView.getWidth())? mOpenCvCameraView.getWidth()-1 : cutFromX;
-						
-						cutFromY = (cutFromY<0)? 0 : cutFromY;
-						cutFromY = (cutFromY>mOpenCvCameraView.getHeight())? mOpenCvCameraView.getHeight() : cutFromY;
-						updateImgArea();
-					}
-				}
+				touchEventStuffCropImage(event, v);
 				return false;
 			}
 		});
 				
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-		mOpenCvCameraView.setCvCameraViewListener(this);
+		mOpenCvCameraView.setCvCameraViewListener(this);		
 		llProgress = (LinearLayout) findViewById(R.id.ll_progress);		
 		progressTv = (TextView) findViewById(android.R.id.text1);		
 		progressBar = (ProgressBar) findViewById(android.R.id.progress);
 		progressBar.setProgress(0);
 				
+		btnReset = (Button) findViewById(R.id.btnReset);
+		btnReset.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				imgCaptured = false;
+				imgLoaded = false;
+				
+				ivImageFile.setVisibility(View.GONE);
+	            mOpenCvCameraView.setVisibility(View.VISIBLE);
+				
+				capturedImage = null;				
+				capturePrintImage = null;
+				
+				loadImage = null;
+				loadPrintImage = null;
+				
+				finalImage = null;
+				toggleImgBtns(false);
+				updateView(false);
+			}
+		});
+		
+		btnLoadImg = (Button) findViewById(R.id.btnLoadImg);
+		btnLoadImg.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+				photoPickerIntent.setType("image/*");
+				startActivityForResult(photoPickerIntent, SELECT_PHOTO);    								
+			}
+		});
+		
 		btnCaptureImage = (Button) findViewById(R.id.btnCapture);
 		btnCaptureImage.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				btnCaptureImage.setText((capturedImage == null)? "reset" : "capture");
-				if (capturedImage!=null){
-					capturedImage = null;
-					sendImg = false;					
-					updateView(false);
-					return;
-				}								
+				toggleImgBtns(true);
 				doCapture = true;
+				imgCaptured = true;
 				updateView(true);
 			}
 
-		});		
+		});	
 		
 		btnHist = (Button) findViewById(R.id.btnHist);
 		btnHist.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {	
-				if (capturedImage != null){					
+				if (imgCaptured && capturedImage != null){					
 					updateView(true);
 					Imgproc.equalizeHist(capturedImage, capturedImage);	
+					updateImgArea();
+				}
+				if (imgLoaded && loadImage != null){					
+					updateView(true);
+					Imgproc.equalizeHist(loadImage, loadImage);	
 					updateImgArea();
 				}
 			}
@@ -190,13 +249,20 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {
+				
+				View f_view = (imgCaptured) ? mOpenCvCameraView : ivImageFile; 
+				
 				if (cropWidth % 8 != 0){
 					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
-				}else if(cutFromX + cropWidth > mOpenCvCameraView.getWidth() 
-						|| cutFromY + cropHeight > mOpenCvCameraView.getHeight() ){
+				}else if(cutFromX + cropWidth > f_view.getWidth() 
+						|| cutFromY + cropHeight > f_view.getHeight() ){
 					Toast.makeText(thisActivity, "selected crop is out of screen, please remove it", Toast.LENGTH_SHORT).show();
 				}else{
-					ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(capturedImage), ImageLog.PRINT_IMAGE);
+					if (imgCaptured){
+						ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(capturedImage), ImageLog.PRINT_IMAGE);
+					}else if (imgLoaded){
+						ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(loadImage), ImageLog.PRINT_IMAGE);
+					}
 					sendImgPart();
 					updateView(true);
 				}
@@ -207,8 +273,15 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {
-				capturedImage = ImageConvertClass.invertImage(capturedImage);
-				updateImgArea();
+				if (imgCaptured && capturedImage != null){
+					capturedImage = ImageConvertClass.invertImage(capturedImage);
+					updateImgArea();
+				}
+				
+				if (imgLoaded && loadImage != null){
+					loadImage = ImageConvertClass.invertImage(loadImage);
+					updateImgArea();
+				}
 			}
 		});
 		
@@ -216,10 +289,58 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		statusTv.setText("");
 		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
-		updateView(false);
+		updateView(false);		
 		
-		
+		ivImageFile = (ImageView)findViewById(R.id.iv_from_file);
+		ivImageFile.setOnTouchListener(new OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				touchEventStuffCropImage(event, v);
+				return false;
+			}
+		});
 	}
+	
+	private void touchEventStuffCropImage(MotionEvent event, View view){
+		
+Log.d("SVB", "X: " + event.getX() + " Y: " + event.getY() + " V.width: " + view.getWidth() + " V.heig: " + view.getHeight());		
+Log.d("SVB", "X: " + event.getX() + " Y: " + event.getY() + " V.width: " + view.getWidth() + " V.heig: " + view.getHeight());
+		if (!isPrinting){
+			if (event.getAction() == MotionEvent.ACTION_DOWN){
+				
+				if (imgCaptured){
+					cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
+					cutFromY = (int)event.getY() - cropHeight/2;
+				}else{
+					cutFromX = (int)event.getX() -  cropWidth/2;// soft border camera
+					cutFromY = (int)event.getY() - cropHeight/2;
+				}
+			
+				cutFromX = (cutFromX<0)? 0 : cutFromX;
+				cutFromX = (cutFromX>view.getWidth())? view.getWidth()-1 : cutFromX;
+				
+				cutFromY = (cutFromY<0)? 0 : cutFromY;
+				cutFromY = (cutFromY>view.getHeight())? view.getHeight() : cutFromY;
+				updateImgArea();
+			}
+		}
+	}
+	
+	private void toggleImgBtns(boolean imgLoaded){
+		if (false == imgLoaded){
+			btnCaptureImage.setVisibility(View.VISIBLE);
+			btnLoadImg.setVisibility(View.VISIBLE);
+			btnReset.setVisibility(View.GONE);
+			sendImg = false;
+		}else{
+			btnCaptureImage.setVisibility(View.GONE);
+			btnLoadImg.setVisibility(View.GONE);
+			btnReset.setVisibility(View.VISIBLE);			
+			sendImg = true;	
+		}
+	}
+	
 	public void moreOptions(View v){
 		int visi = (findViewById(R.id.help_ll).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE;
 		
@@ -275,6 +396,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	public void plusX(View view){
 		cropWidth ++;
 		editX.setText(cropWidth+"");
+		updateImgArea();
 	}
 	
 	public void minusY(View view){
@@ -291,6 +413,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	}
 	
 	private void updateImgArea(){
+
 		if (editX.getText().length() == 0){
 			cropWidth = 0;
 		}else{
@@ -302,53 +425,65 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		}else{
 			cropHeight = Integer.parseInt(editY.getText().toString().trim());
 		}
-		
-		if (capturedImage != null){
-			printImage = capturedImage.clone();
+
+		if (imgCaptured){			
+			
+			if (capturedImage != null){
+				capturePrintImage = capturedImage.clone();
+			}
+		}else if (imgLoaded){
+			
+			if (loadImage != null){
+				loadPrintImage = loadImage.clone();
+				addCropAreaToCaptureView(loadPrintImage);
+				ivImageFile.setImageBitmap(ImageConvertClass.matToBitmap(loadPrintImage) );
+			}			
 		}
 	}
 	
 	private void sendImgPart(){
 		
-		capturedImage = ImageConvertClass.bitmapToMat(ImageLog.getImageFromFile(thisActivity, ImageLog.PRINT_IMAGE));
+		finalImage = ImageConvertClass.bitmapToMat(ImageLog.getImageFromFile(thisActivity, ImageLog.PRINT_IMAGE));
 		
 		//log full image
-		Bitmap b1 = ImageConvertClass.matToBitmap(capturedImage);
+		Bitmap b1 = ImageConvertClass.matToBitmap(finalImage);
 		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image.jpg");		
 		// log crop image
-		Bitmap b2 = ImageConvertClass.cropImage(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight);
+		Bitmap b2 = ImageConvertClass.cropImage(finalImage, cutFromX, cutFromY, cropWidth, cropHeight);
 		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_image_print.jpg");
-//log test		
-//		ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
-//		Log.d("SVB", "l.size="+ l.size());
-//		for (int i = 0; i < 10; i++) {
-//			Log.d("SVB", "l["+i+"].size="+ l.get(i));
-//		}
-//		for (int i = l.size()-10; i < l.size(); i++) {
-//			Log.d("SVB", "l["+i+"].size="+ l.get(i));
-//		}
-//		int pT= DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE);
-//		Log.d("SVB", "partsTotal:" + pT);
-//		
-//		int cnt = 0; 
-//		for (int a : l) {
-//			cnt += a;
-//		}
-//		
-//		Log.d("SVB", "count:" + cnt);
+		
+		
+		//debug log test		
+		/*ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
+		Log.d("SVB", "l.size="+ l.size());
+		for (int i = 0; i < 10; i++) {
+			Log.d("SVB", "l["+i+"].size="+ l.get(i));
+		}
+		for (int i = l.size()-10; i < l.size(); i++) {
+			Log.d("SVB", "l["+i+"].size="+ l.get(i));
+		}
+		int pT= DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE);
+		Log.d("SVB", "partsTotal:" + pT);
+		
+		int cnt = 0; 
+		for (int a : l) {
+			cnt += a;
+		}		
+		Log.d("SVB", "count:" + cnt);*/
+		
 		
 		if (isConnected()){
 			isPrinting = true;
 			sendImg = true;
 			updateView(true);
 			
-			int partsTotal = DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight, PART_SIZE); 
+			int partsTotal = DrillPrinterHelper.getCountImageParts(finalImage, cutFromX, cutFromY, cropWidth, cropHeight, PART_SIZE); 
 			
 			if (partsTotal > part){
 				part++;
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();
 															
-				boolean res = DrillPrinterHelper.sendImgPart(capturedImage, cutFromX, cutFromY, cropWidth, cropHeight, part, partsTotal, PART_SIZE, this);
+				boolean res = DrillPrinterHelper.sendImgPart(finalImage, cutFromX, cutFromY, cropWidth, cropHeight, part, partsTotal, PART_SIZE, this);
 				if (res){
 					Date date = new Date(System.currentTimeMillis());
 					String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
@@ -400,8 +535,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 						+ " yStart: " + cutFromY + "\n\n"
 						+ " start: " + time);
 			}
-		}
-		
+		}		
 		
 	}
 	
@@ -462,8 +596,8 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		
 		if (capturedImage != null){			
-			addSelectArea(printImage);
-			return printImage;
+			addCropAreaToCaptureView(capturePrintImage);
+			return capturePrintImage;
 		}
 		
 		Mat src = inputFrame.rgba();
@@ -472,16 +606,17 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			doCapture = false;
 			capturedImage = src;	
 			Imgproc.cvtColor(capturedImage, capturedImage, Imgproc.COLOR_RGB2GRAY); 
-			printImage = capturedImage.clone();
+			capturePrintImage = capturedImage.clone();
 		}else{			
-			addSelectArea(src);
+			addCropAreaToCaptureView(src);
 		}
 		
 		
 		return src;
 	}
 
-	private void addSelectArea(Mat img){
+	private void addCropAreaToCaptureView(Mat img){
+	
 		Core.rectangle(img, 
 				new Point(cutFromX-1, cutFromY-1), new Point(cutFromX+cropWidth+1, cutFromY+cropHeight+1), 
 				new Scalar(255, 255, 255), 1, 1, 0);
@@ -582,11 +717,71 @@ public class GameDrillPrinter extends GameTemplateClass implements
 				break;
 			
 			default:
-				//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
+				// Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
 				break;
 		}
-		
+				
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) { 
+	    super.onActivityResult(requestCode, resultCode, imageReturnedIntent); 
+
+	    switch(requestCode) { 
+	    case SELECT_PHOTO:
+	        if(resultCode == RESULT_OK){  
+	            Uri selectedImage = imageReturnedIntent.getData();
+	            try {
+					Bitmap b = decodeUri(this, selectedImage, 900);
+					
+					// --convert to grayscale
+					loadImage = ImageConvertClass.bitmapToMat(b);
+					Imgproc.cvtColor(loadImage, loadImage, Imgproc.COLOR_RGB2GRAY);
+					b = ImageConvertClass.matToBitmap(loadImage);
+					// --convert to grayscale
+					
+					ivImageFile.setImageBitmap(b);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+	            
+	            ivImageFile.setVisibility(View.VISIBLE);
+	            mOpenCvCameraView.setVisibility(View.GONE);
+	            imgLoaded = true;
+	            
+	            toggleImgBtns(true);
+	            updateView(true);
+
+	        }
+	    }
 	}
 
+	/**
+	 * resize image, load by Uri
+	 * thank you stackowerflow : <br>
+	 * <b>http://stackoverflow.com/questions/10773511/how-to-resize-an-image-i-picked-from-the-gallery-in-android</b>	
+	 */
+	public static Bitmap decodeUri(Context c, Uri uri, final int requiredSize) 
+            throws FileNotFoundException {
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri), null, o);
+
+        int width_tmp = o.outWidth
+                , height_tmp = o.outHeight;
+        int scale = 1;
+
+        while(true) {
+            if(width_tmp / 2 < requiredSize || height_tmp / 2 < requiredSize)
+                break;
+            width_tmp /= 2;
+            height_tmp /= 2;
+            scale *= 2;
+        }
+
+        BitmapFactory.Options o2 = new BitmapFactory.Options();
+        o2.inSampleSize = scale;
+        return BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri), null, o2);
+    }  
 }
 
