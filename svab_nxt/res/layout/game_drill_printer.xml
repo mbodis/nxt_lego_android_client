@@ -289,9 +289,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 60"
+            android:hint="default: 20//60"
             android:inputType="number"
-            android:text="60" >
+            android:text="20" >
         </EditText>
 
         <TextView
@@ -306,9 +306,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 210"
+            android:hint="default: 120//210"
             android:inputType="number"
-            android:text="210" />
+            android:text="120" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -340,7 +340,7 @@
             android:ems="10"
             android:hint="default: 12"
             android:inputType="number"
-            android:text="36" />
+            android:text="40" />
     </LinearLayout>
 
     <Button

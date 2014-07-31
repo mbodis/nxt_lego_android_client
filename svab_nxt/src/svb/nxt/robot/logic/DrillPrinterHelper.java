@@ -37,14 +37,14 @@ public class DrillPrinterHelper {
 		
 		Bitmap b = ImageConvertClass.cropImage(capturedImage, cropStartX, cropStartY, cropWidth, cropHeight);
 		ArrayList<Integer> list = ImageConvertClass.getImagetoIntList(b);
-		//Log.d("SVB", "res: " + sb.toString());		
+		// Log.d("SVB", "res: " + sb.toString());		
 		
 		if (part == 1){
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START, BTControls.ACTION_PACKAGE_NEW_CONTENT);
-			MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW START");
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW START");
 		}else{
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_START_PACKAGE, BTControls.ACTION_PACKAGE_NEW_CONTENT);
-			MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW PACKAGE");
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW PACKAGE");
 		}		
 		
 		int reading_part = 1;
@@ -61,7 +61,7 @@ public class DrillPrinterHelper {
 				if (reading_part == part){					
 					if (end_row){
 						game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_NEW_LINE, 0);
-						MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW LINE ");
+						// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "NEW LINE ");
 					}
 				}
 				
@@ -69,7 +69,7 @@ public class DrillPrinterHelper {
 								
 				if (reading_part == part){
 					game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_DATA, bval);
-					MyLogger.addLog(game, "sending.txt", "data:" + val+" list["+(c + r * cropWidth)+"]");//					 
+					// MyLogger.addLog(game, "sending.txt", "data:" + val+" list["+(c + r * cropWidth)+"]");//					 
 				}
 				
 				if (partSize == PART_SIZE){
@@ -83,11 +83,11 @@ public class DrillPrinterHelper {
 		
 		if (partTotal == part){
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END, BTControls.ACTION_PRINT);
-			MyLogger.addLog(game.getApplicationContext(), "sending.txt", "END FILE");			
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "END FILE");			
 			return true;
 		}else{			
 			game.sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, BTControls.FILE_END_PACKAGE, BTControls.ACTION_PRINT);
-			MyLogger.addLog(game.getApplicationContext(), "sending.txt", "END PACKAGE");			
+			// MyLogger.addLog(game.getApplicationContext(), "sending.txt", "END PACKAGE");			
 		}
 		return false;
 	}	
@@ -108,7 +108,7 @@ public class DrillPrinterHelper {
 		ArrayList<Integer> list = ImageConvertClass.getImagetoIntList(b);
 				
 		int totalParts = list.size()/(PART_SIZE) + (((list.size() % (PART_SIZE))>0)? 1 : 0);
-		Log.d("SVB", "totalParts: " + totalParts);
+		// Log.d("SVB", "totalParts: " + totalParts);
 		
 		return totalParts;
 	}
