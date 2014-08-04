@@ -71,6 +71,8 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	
 	private static final int SELECT_PHOTO = 100;
 	
+	public static final int IMAGE_LOAD_FORM_FILE_SIZE = 900;
+	
 	/**
 	 * CAMERA VIEW PREFS
 	 */ 
@@ -118,7 +120,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	/** selected image - select form folder **/
 	private boolean imgLoaded = false;
 	private Mat loadImage = null;
-	private Mat loadPrintImage = null; // capture img + sqare area
+	private Mat loadPrintImage = null; // capture img + sqare area	
+	private int width_tmp = 0; // origin image width
+	private int height_tmp = 0; // origin image height
+	private int scale = 1; // scale factor
 	
 	/** img to printing **/
 	private Mat finalImage = null;
@@ -252,11 +257,21 @@ public class GameDrillPrinter extends GameTemplateClass implements
 				
 				View f_view = (imgCaptured) ? mOpenCvCameraView : ivImageFile; 
 				
+				// sending by bytes - quick and easy workaround :)
 				if (cropWidth % 8 != 0){
 					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
-				}else if(cutFromX + cropWidth > f_view.getWidth() 
-						|| cutFromY + cropHeight > f_view.getHeight() ){
+					
+				// capture img borders	
+				}else if(imgCaptured && ( cutFromX + cropWidth > f_view.getWidth() 
+						|| cutFromY + cropHeight > f_view.getHeight() )){
 					Toast.makeText(thisActivity, "selected crop is out of screen, please remove it", Toast.LENGTH_SHORT).show();
+					
+				// loaded img borders	
+				}else if(imgLoaded && (cutFromX + cropWidth > width_tmp 
+						|| cutFromY + cropHeight > height_tmp) ){
+					Toast.makeText(thisActivity, "selected crop is out of screen, please remove it", Toast.LENGTH_SHORT).show();
+
+				// print
 				}else{
 					if (imgCaptured){
 						ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(capturedImage), ImageLog.PRINT_IMAGE);
@@ -303,25 +318,34 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	}
 	
 	private void touchEventStuffCropImage(MotionEvent event, View view){
-		
-Log.d("SVB", "X: " + event.getX() + " Y: " + event.getY() + " V.width: " + view.getWidth() + " V.heig: " + view.getHeight());		
-Log.d("SVB", "X: " + event.getX() + " Y: " + event.getY() + " V.width: " + view.getWidth() + " V.heig: " + view.getHeight());
+	
 		if (!isPrinting){
 			if (event.getAction() == MotionEvent.ACTION_DOWN){
 				
 				if (imgCaptured){
 					cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
 					cutFromY = (int)event.getY() - cropHeight/2;
+					
+					cutFromX = (cutFromX<0)? 0 : cutFromX;
+					cutFromX = (cutFromX>view.getWidth())? view.getWidth()-1 : cutFromX;
+					
+					cutFromY = (cutFromY<0)? 0 : cutFromY;
+					cutFromY = (cutFromY>view.getHeight())? view.getHeight() : cutFromY;
+					
 				}else{
-					cutFromX = (int)event.getX() -  cropWidth/2;// soft border camera
-					cutFromY = (int)event.getY() - cropHeight/2;
+					double ratioX = (double) width_tmp  / view.getWidth();
+					double ratioY = (double) height_tmp / view.getHeight();
+					
+					cutFromX = (int)((double)((double)event.getX()*ratioX) - cropWidth/2) ;// soft border camera
+					cutFromY = (int)((double)((double)event.getY()*ratioY) - cropHeight/2);
+					
+					cutFromX = (cutFromX<0)? 0 : cutFromX;
+					cutFromX = (cutFromX>width_tmp / scale)? width_tmp / scale : cutFromX;
+					
+					cutFromY = (cutFromY<0)? 0 : cutFromY;
+					cutFromY = (cutFromY>height_tmp /scale)? height_tmp /scale : cutFromY;
 				}
-			
-				cutFromX = (cutFromX<0)? 0 : cutFromX;
-				cutFromX = (cutFromX>view.getWidth())? view.getWidth()-1 : cutFromX;
-				
-				cutFromY = (cutFromY<0)? 0 : cutFromY;
-				cutFromY = (cutFromY>view.getHeight())? view.getHeight() : cutFromY;
+							
 				updateImgArea();
 			}
 		}
@@ -732,7 +756,7 @@ Log.d("SVB", "X: " + event.getX() + " Y: " + event.getY() + " V.width: " + view.
 	        if(resultCode == RESULT_OK){  
 	            Uri selectedImage = imageReturnedIntent.getData();
 	            try {
-					Bitmap b = decodeUri(this, selectedImage, 900);
+					Bitmap b = decodeUri(this, selectedImage, this.IMAGE_LOAD_FORM_FILE_SIZE);
 					
 					// --convert to grayscale
 					loadImage = ImageConvertClass.bitmapToMat(b);
@@ -761,15 +785,15 @@ Log.d("SVB", "X: " + event.getX() + " Y: " + event.getY() + " V.width: " + view.
 	 * thank you stackowerflow : <br>
 	 * <b>http://stackoverflow.com/questions/10773511/how-to-resize-an-image-i-picked-from-the-gallery-in-android</b>	
 	 */
-	public static Bitmap decodeUri(Context c, Uri uri, final int requiredSize) 
+	public Bitmap decodeUri(Context c, Uri uri, final int requiredSize) 
             throws FileNotFoundException {
         BitmapFactory.Options o = new BitmapFactory.Options();
         o.inJustDecodeBounds = true;
         BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri), null, o);
 
-        int width_tmp = o.outWidth
-                , height_tmp = o.outHeight;
-        int scale = 1;
+        width_tmp = o.outWidth;
+        height_tmp = o.outHeight;
+        scale = 1;
 
         while(true) {
             if(width_tmp / 2 < requiredSize || height_tmp / 2 < requiredSize)

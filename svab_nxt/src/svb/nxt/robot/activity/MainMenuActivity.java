@@ -95,10 +95,10 @@ public class MainMenuActivity extends Activity {
 		} else if (robotType == ROBOT_ID_LEJOS) {
 			list.add(getString(R.string.program_move_motor));
 		} else if (robotType == ROBOT_ID_PRINTER) {
-			list.add(getString(R.string.program_print_test));
-			list.add(getString(R.string.program_print_test2));
-			list.add(getString(R.string.program_pen_print_photo));
 			list.add(getString(R.string.program_drill_print_photo));
+			list.add(getString(R.string.program_pen_print_photo));
+			list.add(getString(R.string.program_print_test2));
+			list.add(getString(R.string.program_print_test));
 		} else if (robotType == ROBOT_ID_SEGWAY) {
 			list.add(getString(R.string.program_segway));			
 		}
