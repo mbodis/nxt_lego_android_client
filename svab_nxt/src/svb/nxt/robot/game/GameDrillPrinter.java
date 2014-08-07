@@ -339,11 +339,11 @@ public class GameDrillPrinter extends GameTemplateClass implements
 					cutFromX = (int)((double)((double)event.getX()*ratioX) - cropWidth/2) ;// soft border camera
 					cutFromY = (int)((double)((double)event.getY()*ratioY) - cropHeight/2);
 					
-					cutFromX = (cutFromX<0)? 0 : cutFromX;
-					cutFromX = (cutFromX>width_tmp / scale)? width_tmp / scale : cutFromX;
+//					cutFromX = (cutFromX<0)? 0 : cutFromX;
+//					cutFromX = (cutFromX>width_tmp / scale)? width_tmp / scale : cutFromX;
 					
-					cutFromY = (cutFromY<0)? 0 : cutFromY;
-					cutFromY = (cutFromY>height_tmp /scale)? height_tmp /scale : cutFromY;
+//					cutFromY = (cutFromY<0)? 0 : cutFromY;
+//					cutFromY = (cutFromY>height_tmp /scale)? height_tmp /scale : cutFromY;
 				}
 							
 				updateImgArea();
