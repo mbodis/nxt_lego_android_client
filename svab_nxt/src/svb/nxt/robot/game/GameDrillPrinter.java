@@ -18,6 +18,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import svb.lib.log.MyLogger;
 import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTConnectable;
@@ -288,6 +289,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			
 			@Override
 			public void onClick(View v) {
+				
+				//clear old logs
+				MyLogger.removeLogFile(GameDrillPrinter.this, "sending.txt");
+				
 				if (imgCaptured && capturedImage != null){
 					capturedImage = ImageConvertClass.invertImage(capturedImage);
 					updateImgArea();
@@ -543,6 +548,8 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			btnSendCrop.setEnabled(false);
 			btnInvert.setEnabled(false);
 			btnCaptureImage.setEnabled(false);
+			btnLoadImg.setEnabled(false);
+			btnReset.setEnabled(false);
 			editX.setEnabled(false);
 			editY.setEnabled(false);
 			((Button)findViewById(R.id.plusx)).setEnabled(false);

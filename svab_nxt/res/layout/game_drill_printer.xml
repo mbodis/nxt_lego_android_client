@@ -128,7 +128,7 @@
                     android:layout_weight="0.2"
                     android:ems="10"
                     android:inputType="number"
-                    android:text="96" />
+                    android:text="320" />
 
                 <Button
                     android:id="@+id/plusx"
@@ -153,7 +153,7 @@
                     android:layout_weight="0.2"
                     android:ems="10"
                     android:inputType="number"
-                    android:text="60" />
+                    android:text="320" />
 
                 <Button
                     android:id="@+id/plusy"

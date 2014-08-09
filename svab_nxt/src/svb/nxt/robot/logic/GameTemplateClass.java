@@ -221,6 +221,7 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 		super.onStart();
 
 		// no bluetooth available
+		/*
 		if (BluetoothAdapter.getDefaultAdapter() == null) {
 			Toast.makeText(thisActivity,
 					getString(R.string.bt_initialization_failure),
@@ -229,6 +230,7 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 			finish();
 			return;
 		}
+		*/
 
 		if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
 			Intent enableIntent = new Intent(
@@ -387,8 +389,11 @@ public abstract class GameTemplateClass extends Activity implements BTConnectabl
 	}
 
 	public void selectNXT() {
-		Intent serverIntent = new Intent(this, DeviceListActivity.class);
-		startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+		
+		if (!isConnected()){		
+			Intent serverIntent = new Intent(this, DeviceListActivity.class);
+			startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+		}
 	}
 
 	@Override
