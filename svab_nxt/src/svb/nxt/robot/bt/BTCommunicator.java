@@ -339,6 +339,13 @@ public class BTCommunicator extends Thread {
                     sendState(BTControls.FILE_NEW_PACKAGE_REQUEST);
                 }    
                 break;
+           
+            case LCPMessage.TEST_CONNECTION:
+                if (message.length == 2 || message.length == 3) {
+                    sendState(BTControls.TEST_CONNECTION);
+                }    
+                break;     
+                
         }
     }
 

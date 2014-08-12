@@ -63,10 +63,13 @@ public class LCPMessage {
     // MINDdroidConnector additions
     public static final byte SAY_TEXT = 0x30;
     public static final byte VIBRATE_PHONE = 0x31;
-    public static final byte ACTION_BUTTON = 0x32;        
-    public static final byte GAME_TYPE = 0x33;//SVB
-    public static final byte ROBOT_TYPE = 0x34;//SVB
-    public static final byte FILE_NEXT_PART = 0x35;//SVB
+    public static final byte ACTION_BUTTON = 0x32;
+    
+    //SVB
+    public static final byte GAME_TYPE = 0x33;
+    public static final byte ROBOT_TYPE = 0x34;
+    public static final byte FILE_NEXT_PART = 0x35;
+    public static final byte TEST_CONNECTION = 0x36;
     
     // System Commands:
     public static final byte OPEN_READ = (byte)0x80;

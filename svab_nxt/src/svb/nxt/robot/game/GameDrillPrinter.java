@@ -54,6 +54,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -279,6 +280,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 					}else if (imgLoaded){
 						ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(loadImage), ImageLog.PRINT_IMAGE);
 					}
+					
+					//clear old logs
+					MyLogger.removeLogFile(GameDrillPrinter.this, "sending.txt");
+					
 					sendImgPart();
 					updateView(true);
 				}
@@ -288,10 +293,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		btnInvert .setOnClickListener(new OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
-				
-				//clear old logs
-				MyLogger.removeLogFile(GameDrillPrinter.this, "sending.txt");
+			public void onClick(View v) {								
 				
 				if (imgCaptured && capturedImage != null){
 					capturedImage = ImageConvertClass.invertImage(capturedImage);
@@ -307,7 +309,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		
 		statusTv = ((TextView) findViewById(R.id.status));
 		statusTv.setText("");
-		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
+		((ScrollView) findViewById(R.id.help_ll)).setVisibility(View.GONE);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
 		updateView(false);		
 		
@@ -373,10 +375,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	public void moreOptions(View v){
 		int visi = (findViewById(R.id.help_ll).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE;
 		
-		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(visi);
+		((ScrollView) findViewById(R.id.help_ll)).setVisibility(visi);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(visi);
 		
-		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(visi);
+		((ScrollView) findViewById(R.id.help_ll)).setVisibility(visi);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(visi);
 	} 
 	
@@ -414,6 +416,15 @@ public class GameDrillPrinter extends GameTemplateClass implements
 					BTControls.DRILL_MAX_UP, Integer.parseInt(drillMax.getText().toString().trim())/2);
 		}
 	}
+	public void testConnection(View view){
+		if (isConnected()){
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
+					BTControls.TEST_CONNECTION, 0);
+		}else{
+			Toast.makeText(thisActivity, "not connected", Toast.LENGTH_LONG).show();
+		}
+	}
+	
 	
 	public void minusX(View view){
 		if (cropWidth>0){
@@ -513,10 +524,14 @@ public class GameDrillPrinter extends GameTemplateClass implements
 				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();
 															
 				boolean res = DrillPrinterHelper.sendImgPart(finalImage, cutFromX, cutFromY, cropWidth, cropHeight, part, partsTotal, PART_SIZE, this);
+				
 				if (res){
 					Date date = new Date(System.currentTimeMillis());
 					String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
-					statusTv.append("\n end: " + time + "\n\n");
+					String t = "\n end: " + time + "\n\n";
+					MyLogger.addLog(GameDrillPrinter.this, "sending.txt", t);
+					statusTv.append(t);
+					
 				}
 				updateProgress(part, partsTotal);
 				
@@ -560,11 +575,14 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			if (statusTv.getText().length() == 0){
 				Date date = new Date(System.currentTimeMillis());
 				String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
+				String t = " xStart: " + cutFromX + "\n"
+						+ " yStart: " + cutFromY + "\n\n"
+						+ " start: " + time;
 				statusTv.setText("log:\n"
 						+ " KEEP DEVICE ENOUGHT POWER !\n\n"
-						+ " xStart: " + cutFromX + "\n"
-						+ " yStart: " + cutFromY + "\n\n"
-						+ " start: " + time);
+						+ t);
+				
+				MyLogger.addLog(GameDrillPrinter.this, "sending.txt", t);
 			}
 		}		
 		
@@ -742,10 +760,16 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		int type = myMessage.getData().getInt("message");
 		//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();	
 		
+		MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "RECIEVE FROM NXT: " + type);
 		switch(type){
 			case BTControls.FILE_NEW_PACKAGE_REQUEST:				
+				MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "NEW PACKAGE REQUEST");
 				sendImgPart();
 				break;
+				
+			case BTControls.TEST_CONNECTION:								
+				Toast.makeText(thisActivity, "Device connected OK", Toast.LENGTH_LONG).show();
+				break;	
 			
 			default:
 				// Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
