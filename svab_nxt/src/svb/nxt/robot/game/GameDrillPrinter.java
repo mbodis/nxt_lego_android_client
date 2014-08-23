@@ -284,10 +284,12 @@ public class GameDrillPrinter extends GameTemplateClass implements
 					//clear old logs
 					MyLogger.removeLogFile(GameDrillPrinter.this, "sending.txt");
 					
+					initPrinterSettings();
 					sendImgPart();
 					updateView(true);
 				}
 			}
+			
 		});		
 		btnInvert = (Button) findViewById(R.id.btnInvert);
 		btnInvert .setOnClickListener(new OnClickListener() {
@@ -746,18 +748,9 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	}		
 	
 	@Override
-	public void onConnectToDevice() {
+	public void onConnectToDevice() {				
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_DRILL_PRINTER, 0);		
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				
-				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_HEAD_MOVE, Integer.parseInt(drillHeadMove.getText().toString().trim()));
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_SPEED, Integer.parseInt(drillSpeed.getText().toString().trim()));		
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_MIN_DRILL, Integer.parseInt(drillMin.getText().toString().trim())/2);
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_MAX_DRILL, Integer.parseInt(drillMax.getText().toString().trim())/2);
+				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_DRILL_PRINTER, 0);
 	}
 
 	@Override
@@ -842,6 +835,19 @@ public class GameDrillPrinter extends GameTemplateClass implements
         BitmapFactory.Options o2 = new BitmapFactory.Options();
         o2.inSampleSize = scale;
         return BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri), null, o2);
-    }  
+    }
+	
+	private void initPrinterSettings() {		
+		
+		sendBTCmessage(BTCommunicator.NO_DELAY,				
+				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_HEAD_MOVE, Integer.parseInt(drillHeadMove.getText().toString().trim()));
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_SPEED, Integer.parseInt(drillSpeed.getText().toString().trim()));		
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_MIN_DRILL, Integer.parseInt(drillMin.getText().toString().trim())/2);
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_MAX_DRILL, Integer.parseInt(drillMax.getText().toString().trim())/2);
+		
+	}
 }
 
