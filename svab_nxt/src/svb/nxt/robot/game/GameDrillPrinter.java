@@ -750,9 +750,14 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		sendBTCmessage(BTCommunicator.NO_DELAY,
 				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_DRILL_PRINTER, 0);		
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.DRILL_HEAD_MOVE, Integer.parseInt(drillHeadMove.getText().toString().trim()));
+				
+				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_HEAD_MOVE, Integer.parseInt(drillHeadMove.getText().toString().trim()));
 		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.DRILL_SPEED, Integer.parseInt(drillSpeed.getText().toString().trim()));
+				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_SPEED, Integer.parseInt(drillSpeed.getText().toString().trim()));		
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_MIN_DRILL, Integer.parseInt(drillMin.getText().toString().trim())/2);
+		sendBTCmessage(BTCommunicator.NO_DELAY,
+				BTCommunicator.GAME_TYPE, BTControls.DRILL_SET_MAX_DRILL, Integer.parseInt(drillMax.getText().toString().trim())/2);
 	}
 
 	@Override

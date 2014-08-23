@@ -319,9 +319,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="default: 120//210"
+            android:hint="default: //120//210"
             android:inputType="number"
-            android:text="120" />
+            android:text="210" />
 
         <TextView
             android:layout_width="wrap_content"
