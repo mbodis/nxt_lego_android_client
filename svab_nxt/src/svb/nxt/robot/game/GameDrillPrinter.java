@@ -331,7 +331,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		if (!isPrinting){
 			if (event.getAction() == MotionEvent.ACTION_DOWN){
 				
-				if (imgCaptured){
+				if (imgCaptured || !imgLoaded){
 					cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
 					cutFromY = (int)event.getY() - cropHeight/2;
 					
