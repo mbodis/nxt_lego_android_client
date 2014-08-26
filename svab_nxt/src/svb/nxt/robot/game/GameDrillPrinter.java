@@ -36,6 +36,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera.Size;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -140,6 +141,10 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	
 	@Override
 	public void setupLayout(){
+		
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.game_drill_printer);
@@ -391,8 +396,20 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	
 	public void toggle(View v){
 		int vis =  ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE); 
+		String t =  ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? "x" : "□");
+		((TextView)findViewById(R.id.toggle)).setText(t);		
 		findViewById(R.id.linearLayout1).setVisibility(vis);		
 	}
+	
+	public void sleep(View v){
+		findViewById(R.id.sleep).setVisibility(View.VISIBLE);		
+		findViewById(R.id.minimalize).setVisibility(View.GONE);
+	}
+	
+	public void endSleep(View v){		
+		findViewById(R.id.sleep).setVisibility(View.GONE);		
+		findViewById(R.id.minimalize).setVisibility(View.VISIBLE);
+	}	
 	
 	public void penHeadDownMin(View view){
 		if (isConnected()){

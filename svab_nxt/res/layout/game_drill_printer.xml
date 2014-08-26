@@ -17,6 +17,7 @@
         android:visibility="gone" />
 
     <ScrollView
+        android:layout_marginTop="42dp"
         android:id="@+id/linearLayout1"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -357,11 +358,30 @@
     </LinearLayout>
 
     <Button
+        android:id="@+id/toggle"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:onClick="toggle"
         android:text="x" />
+
+    <RelativeLayout
+        android:id="@+id/sleep"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:visibility="gone"
+        android:onClick="endSleep" >
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/minimalize"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/toggle"
+        android:onClick="sleep"
+        android:text="_" />
 
 </RelativeLayout>
