@@ -412,29 +412,49 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	}	
 	
 	public void penHeadDownMin(View view){
+		if (isPrinting){
+			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
+			return;
+		}	
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
 					BTControls.DRILL_MIN_DOWN, Integer.parseInt(drillMin.getText().toString().trim())/2);
 		}
 	}
+	
 	public void penHeadUpMin(View view){
+		if (isPrinting){
+			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
 					BTControls.DRILL_MIN_UP, Integer.parseInt(drillMin.getText().toString().trim())/2);
 		}
 	}
+	
 	public void penHeadDownMax(View view){
+		if (isPrinting){
+			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
 					BTControls.DRILL_MAX_DOWN, Integer.parseInt(drillMax.getText().toString().trim())/2);
 		}
 	}
+	
 	public void penHeadUpMax(View view){
+		if (isPrinting){
+			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
 					BTControls.DRILL_MAX_UP, Integer.parseInt(drillMax.getText().toString().trim())/2);
 		}
 	}
+	
 	public void testConnection(View view){
 		if (isConnected()){
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
