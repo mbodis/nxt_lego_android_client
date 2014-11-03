@@ -1,7 +1,13 @@
 TODO LIST:
 
-NEW FEATURES:
-- printer (error while printing - drill head move up before next column) - e.g. -> print valuers 10,20,20,10,10,15
-- create list of commands (use drad and drop to reoreder)
-- gyroscope - segway
-- move by colors - update (option to set color), ON/OFF start
+	BUG FIXIES:
+	- printer: run check connection every 5 minutes
+	
+	UPDATE
+	- printer: send email notification after finished printing (url my server)
+	- printer (error while printing - drill head move up before next column) - e.g. -> print valuers 10,20,20,10,10,15
+	
+	NEW FEATURES:
+	- create list of commands (use drad and drop to reoreder)
+	- gyroscope - segway
+	- move by colors - update (option to set color), ON/OFF start
