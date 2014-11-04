@@ -20,11 +20,13 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import svb.lib.SuppClass;
 import svb.lib.log.MyLogger;
 import svb.nxt.robot.R;
 import svb.nxt.robot.bt.BTCommunicator;
 import svb.nxt.robot.bt.BTConnectable;
 import svb.nxt.robot.bt.BTControls;
+import svb.nxt.robot.dialog.ChooseURLOnFinishDrill;
 import svb.nxt.robot.dialog.HelpDialog;
 import svb.nxt.robot.game.opencv.OpenCVColorView;
 import svb.nxt.robot.logic.DrillPrinterHelper;
@@ -38,8 +40,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera.Size;
 import android.net.Uri;
-import android.opengl.Visibility;
+import android.net.wifi.WifiManager;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -65,22 +68,23 @@ import android.widget.Toast;
  * 
  * @author mbodis
  *
- * drill printer
- * 1) select image from camera or choose form file
- * 2) image filters(equalize histogram, invert image)
- * 3) customize printer setting (drill head position, speed, movement rotation)
- * 4) do the print - sending image by parts (because of small memory in NXT)   
+ *         drill printer 1) select image from camera or choose form file 2)
+ *         image filters(equalize histogram, invert image) 3) customize printer
+ *         setting (drill head position, speed, movement rotation) 4) do the
+ *         print - sending image by parts (because of small memory in NXT)
  */
 public class GameDrillPrinter extends GameTemplateClass implements
 		CvCameraViewListener2, BTConnectable {
-	
+
+	public static final String PRINT_FINISH_URL = "url_finish";
+
 	private static final int SELECT_PHOTO = 100;
-	
+
 	public static final int IMAGE_LOAD_FORM_FILE_SIZE = 900;
-	
+
 	/**
 	 * CAMERA VIEW PREFS
-	 */ 
+	 */
 	private static final String TAG = "GamePrintFoto::Activity";
 	private OpenCVColorView mOpenCvCameraView;
 	private List<Size> mResolutionList;
@@ -88,140 +92,142 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	private SubMenu mColorEffectsMenu;
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
-	
+
 	/**
 	 * PRINTER STATES
 	 */
-	
+
 	/** just for one interval - catch frame form camera view - toggle token **/
-	private boolean doCapture = false; 
+	private boolean doCapture = false;
 	/** show send button **/
 	private boolean sendImg = false;
 	/** if image was send - disable everything **/
 	private boolean isPrinting = false;
-	
-	
-	/** 
+
+	/**
 	 * VIEWS IN ORDER IN LAYOUT
 	 */
 	private Button btnCaptureImage, btnLoadImg, btnReset;
-	private Button btnHist, btnInvert, btnSendCrop; 	
+	private Button btnHist, btnInvert, btnSendCrop;
 	private ProgressBar progressBar;
 	private TextView progressTv, statusTv;
 	private ImageView ivImageFile;
 	private LinearLayout llProgress;
 	private EditText editX, editY;
 	private EditText drillMin, drillMax, drillHeadMove, drillSpeed;
-	
+
 	/**
 	 * SELECTED IMAGE
 	 */
-	
+
 	/** selected image - capturing **/
 	private boolean imgCaptured = false;
 	private Mat capturedImage = null;
 	private Mat capturePrintImage = null; // capture img + sqare area
-	
+
 	/** selected image - select form folder **/
 	private boolean imgLoaded = false;
 	private Mat loadImage = null;
-	private Mat loadPrintImage = null; // capture img + sqare area	
+	private Mat loadPrintImage = null; // capture img + sqare area
 	private int width_tmp = 0; // origin image width
 	private int height_tmp = 0; // origin image height
 	private int scale = 1; // scale factor
-	
+
 	/** img to printing **/
 	private Mat finalImage = null;
-	
-	// 96 * 60 -> NXT display  8 binarnych cisel -> poseilam po byte-och	
-	int cropWidth = 8*12; // default size
-	int cropHeight = 60;	// default size
-	int PART_SIZE = 100; 
+
+	// 96 * 60 -> NXT display 8 binarnych cisel -> poseilam po byte-och
+	int cropWidth = 8 * 12; // default size
+	int cropHeight = 60; // default size
+	int PART_SIZE = 100;
 	int cutFromX = 0;
 	int cutFromY = 0;
 	private int part = 0; // current sending part
-	
+
 	Timer timer;
-	
+
 	@Override
-	public void setupLayout(){
-		
+	public void setupLayout() {
+
+		// sendEmailNotif();
+		enterNotifUrl();
+
 		// every 5 minutes check if does not fell asleep
 		timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			public void run() {
-				
-				if (isConnected()){
-					MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "==============TIMER CHECK============== is connected");
+
+				if (isConnected()) {
+					MyLogger.addLog(GameDrillPrinter.this, "sending.txt",
+							"==============TIMER CHECK============== is connected");
 					testConnection(null);
-				}else{
-					MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "==============TIMER CHECK============== is not connected");
+				} else {
+					MyLogger.addLog(GameDrillPrinter.this, "sending.txt",
+							"==============TIMER CHECK============== is not connected");
 				}
 			}
-		}, 5*60*1000, 5*60*1000);
-		
-		
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		
-		
+		}, 5 * 60 * 1000, 5 * 60 * 1000);
+
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.game_drill_printer);
 
 		mOpenCvCameraView = (OpenCVColorView) findViewById(R.id.tutorial3_activity_java_surface_view);
 		mOpenCvCameraView.setOnTouchListener(new OnTouchListener() {
-			
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				touchEventStuffCropImage(event, v);
 				return false;
 			}
 		});
-				
+
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-		mOpenCvCameraView.setCvCameraViewListener(this);		
-		llProgress = (LinearLayout) findViewById(R.id.ll_progress);		
-		progressTv = (TextView) findViewById(android.R.id.text1);		
+		mOpenCvCameraView.setCvCameraViewListener(this);
+		llProgress = (LinearLayout) findViewById(R.id.ll_progress);
+		progressTv = (TextView) findViewById(android.R.id.text1);
 		progressBar = (ProgressBar) findViewById(android.R.id.progress);
 		progressBar.setProgress(0);
-				
+
 		btnReset = (Button) findViewById(R.id.btnReset);
 		btnReset.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				imgCaptured = false;
 				imgLoaded = false;
-				
+
 				ivImageFile.setVisibility(View.GONE);
-	            mOpenCvCameraView.setVisibility(View.VISIBLE);
-				
-				capturedImage = null;				
+				mOpenCvCameraView.setVisibility(View.VISIBLE);
+
+				capturedImage = null;
 				capturePrintImage = null;
-				
+
 				loadImage = null;
 				loadPrintImage = null;
-				
+
 				finalImage = null;
 				toggleImgBtns(false);
 				updateView(false);
 			}
 		});
-		
+
 		btnLoadImg = (Button) findViewById(R.id.btnLoadImg);
 		btnLoadImg.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
 				photoPickerIntent.setType("image/*");
-				startActivityForResult(photoPickerIntent, SELECT_PHOTO);    								
+				startActivityForResult(photoPickerIntent, SELECT_PHOTO);
 			}
 		});
-		
+
 		btnCaptureImage = (Button) findViewById(R.id.btnCapture);
 		btnCaptureImage.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				toggleImgBtns(true);
@@ -230,40 +236,41 @@ public class GameDrillPrinter extends GameTemplateClass implements
 				updateView(true);
 			}
 
-		});	
-		
+		});
+
 		btnHist = (Button) findViewById(R.id.btnHist);
 		btnHist.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
-			public void onClick(View v) {	
-				if (imgCaptured && capturedImage != null){					
+			public void onClick(View v) {
+				if (imgCaptured && capturedImage != null) {
 					updateView(true);
-					Imgproc.equalizeHist(capturedImage, capturedImage);	
+					Imgproc.equalizeHist(capturedImage, capturedImage);
 					updateImgArea();
 				}
-				if (imgLoaded && loadImage != null){					
+				if (imgLoaded && loadImage != null) {
 					updateView(true);
-					Imgproc.equalizeHist(loadImage, loadImage);	
+					Imgproc.equalizeHist(loadImage, loadImage);
 					updateImgArea();
 				}
 			}
 		});
-				
+
 		TextWatcher tv = new TextWatcher() {
-			
+
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				updateImgArea();				
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				updateImgArea();
 			}
-			
+
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
 					int after) {
 			}
-			
+
 			@Override
-			public void afterTextChanged(Editable s) {				
+			public void afterTextChanged(Editable s) {
 			}
 		};
 		editX = (EditText) findViewById(R.id.cropX);
@@ -274,74 +281,88 @@ public class GameDrillPrinter extends GameTemplateClass implements
 		drillMax = (EditText) findViewById(R.id.drillmax);
 		drillHeadMove = (EditText) findViewById(R.id.drillhead);
 		drillSpeed = (EditText) findViewById(R.id.drillspeed);
-		
+
 		btnSendCrop = (Button) findViewById(R.id.btnSendCrop);
 		btnSendCrop.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-				
-				View f_view = (imgCaptured) ? mOpenCvCameraView : ivImageFile; 
-				
-				// sending by bytes - quick and easy workaround :)
-				if (cropWidth % 8 != 0){
-					Toast.makeText(thisActivity, "X mod 8  != 0  MOD="+ (cropWidth%8), Toast.LENGTH_SHORT).show();
-					
-				// capture img borders	
-				}else if(imgCaptured && ( cutFromX + cropWidth > f_view.getWidth() 
-						|| cutFromY + cropHeight > f_view.getHeight() )){
-					Toast.makeText(thisActivity, "selected crop is out of screen, please remove it", Toast.LENGTH_SHORT).show();
-					
-				// loaded img borders	
-				}else if(imgLoaded && (cutFromX + cropWidth > width_tmp 
-						|| cutFromY + cropHeight > height_tmp) ){
-					Toast.makeText(thisActivity, "selected crop is out of screen, please remove it", Toast.LENGTH_SHORT).show();
 
-				// print
-				}else{
-					if (imgCaptured){
-						ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(capturedImage), ImageLog.PRINT_IMAGE);
-					}else if (imgLoaded){
-						ImageLog.saveImageToFile(thisActivity, ImageConvertClass.matToBitmap(loadImage), ImageLog.PRINT_IMAGE);
+				View f_view = (imgCaptured) ? mOpenCvCameraView : ivImageFile;
+
+				// sending by bytes - quick and easy workaround :)
+				if (cropWidth % 8 != 0) {
+					Toast.makeText(thisActivity,
+							"X mod 8  != 0  MOD=" + (cropWidth % 8),
+							Toast.LENGTH_SHORT).show();
+
+					// capture img borders
+				} else if (imgCaptured
+						&& (cutFromX + cropWidth > f_view.getWidth() || cutFromY
+								+ cropHeight > f_view.getHeight())) {
+					Toast.makeText(thisActivity,
+							"selected crop is out of screen, please remove it",
+							Toast.LENGTH_SHORT).show();
+
+					// loaded img borders
+				} else if (imgLoaded
+						&& (cutFromX + cropWidth > width_tmp || cutFromY
+								+ cropHeight > height_tmp)) {
+					Toast.makeText(thisActivity,
+							"selected crop is out of screen, please remove it",
+							Toast.LENGTH_SHORT).show();
+
+					// print
+				} else {
+					if (imgCaptured) {
+						ImageLog.saveImageToFile(thisActivity,
+								ImageConvertClass.matToBitmap(capturedImage),
+								ImageLog.PRINT_IMAGE);
+					} else if (imgLoaded) {
+						ImageLog.saveImageToFile(thisActivity,
+								ImageConvertClass.matToBitmap(loadImage),
+								ImageLog.PRINT_IMAGE);
 					}
-					
-					//clear old logs
+
+					// clear old logs
 					MyLogger.removeLogFile(GameDrillPrinter.this, "sending.txt");
-					
+
 					initPrinterSettings();
 					sendImgPart();
 					updateView(true);
 				}
 			}
-			
-		});		
+
+		});
 		btnInvert = (Button) findViewById(R.id.btnInvert);
-		btnInvert .setOnClickListener(new OnClickListener() {
-			
+		btnInvert.setOnClickListener(new OnClickListener() {
+
 			@Override
-			public void onClick(View v) {								
-				
-				if (imgCaptured && capturedImage != null){
-					capturedImage = ImageConvertClass.invertImage(capturedImage);
+			public void onClick(View v) {
+
+				if (imgCaptured && capturedImage != null) {
+					capturedImage = ImageConvertClass
+							.invertImage(capturedImage);
 					updateImgArea();
 				}
-				
-				if (imgLoaded && loadImage != null){
+
+				if (imgLoaded && loadImage != null) {
 					loadImage = ImageConvertClass.invertImage(loadImage);
 					updateImgArea();
 				}
 			}
 		});
-		
+
 		statusTv = ((TextView) findViewById(R.id.status));
 		statusTv.setText("");
 		((ScrollView) findViewById(R.id.help_ll)).setVisibility(View.GONE);
-		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(View.GONE);		
-		updateView(false);		
-		
-		ivImageFile = (ImageView)findViewById(R.id.iv_from_file);
+		((LinearLayout) findViewById(R.id.help_ll_detail))
+				.setVisibility(View.GONE);
+		updateView(false);
+
+		ivImageFile = (ImageView) findViewById(R.id.iv_from_file);
 		ivImageFile.setOnTouchListener(new OnTouchListener() {
-			
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				touchEventStuffCropImage(event, v);
@@ -349,274 +370,332 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			}
 		});
 	}
-	
-	private void touchEventStuffCropImage(MotionEvent event, View view){
-	
-		if (!isPrinting){
-			if (event.getAction() == MotionEvent.ACTION_DOWN){
-				
-				if (imgCaptured || !imgLoaded){
-					cutFromX = (int)event.getX() - 60 - cropWidth/2;// soft border camera
-					cutFromY = (int)event.getY() - cropHeight/2;
-					
-					cutFromX = (cutFromX<0)? 0 : cutFromX;
-					cutFromX = (cutFromX>view.getWidth())? view.getWidth()-1 : cutFromX;
-					
-					cutFromY = (cutFromY<0)? 0 : cutFromY;
-					cutFromY = (cutFromY>view.getHeight())? view.getHeight() : cutFromY;
-					
-				}else{
-					double ratioX = (double) width_tmp  / view.getWidth();
+
+	private void touchEventStuffCropImage(MotionEvent event, View view) {
+
+		if (!isPrinting) {
+			if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+				if (imgCaptured || !imgLoaded) {
+					cutFromX = (int) event.getX() - 60 - cropWidth / 2;// soft
+																		// border
+																		// camera
+					cutFromY = (int) event.getY() - cropHeight / 2;
+
+					cutFromX = (cutFromX < 0) ? 0 : cutFromX;
+					cutFromX = (cutFromX > view.getWidth()) ? view.getWidth() - 1
+							: cutFromX;
+
+					cutFromY = (cutFromY < 0) ? 0 : cutFromY;
+					cutFromY = (cutFromY > view.getHeight()) ? view.getHeight()
+							: cutFromY;
+
+				} else {
+					double ratioX = (double) width_tmp / view.getWidth();
 					double ratioY = (double) height_tmp / view.getHeight();
-					
-					cutFromX = (int)((double)((double)event.getX()*ratioX) - cropWidth/2) ;// soft border camera
-					cutFromY = (int)((double)((double)event.getY()*ratioY) - cropHeight/2);
-					
-//					cutFromX = (cutFromX<0)? 0 : cutFromX;
-//					cutFromX = (cutFromX>width_tmp / scale)? width_tmp / scale : cutFromX;
-					
-//					cutFromY = (cutFromY<0)? 0 : cutFromY;
-//					cutFromY = (cutFromY>height_tmp /scale)? height_tmp /scale : cutFromY;
+
+					cutFromX = (int) ((double) ((double) event.getX() * ratioX) - cropWidth / 2);// soft
+																									// border
+																									// camera
+					cutFromY = (int) ((double) ((double) event.getY() * ratioY) - cropHeight / 2);
+
+					// cutFromX = (cutFromX<0)? 0 : cutFromX;
+					// cutFromX = (cutFromX>width_tmp / scale)? width_tmp /
+					// scale : cutFromX;
+
+					// cutFromY = (cutFromY<0)? 0 : cutFromY;
+					// cutFromY = (cutFromY>height_tmp /scale)? height_tmp
+					// /scale : cutFromY;
 				}
-							
+
 				updateImgArea();
 			}
 		}
 	}
-	
-	private void toggleImgBtns(boolean imgLoaded){
-		if (false == imgLoaded){
+
+	private void toggleImgBtns(boolean imgLoaded) {
+		if (false == imgLoaded) {
 			btnCaptureImage.setVisibility(View.VISIBLE);
 			btnLoadImg.setVisibility(View.VISIBLE);
 			btnReset.setVisibility(View.GONE);
 			sendImg = false;
-		}else{
+		} else {
 			btnCaptureImage.setVisibility(View.GONE);
 			btnLoadImg.setVisibility(View.GONE);
-			btnReset.setVisibility(View.VISIBLE);			
-			sendImg = true;	
+			btnReset.setVisibility(View.VISIBLE);
+			sendImg = true;
 		}
 	}
-	
-	public void moreOptions(View v){
-		int visi = (findViewById(R.id.help_ll).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE;
-		
+
+	public void moreOptions(View v) {
+		int visi = (findViewById(R.id.help_ll).getVisibility() == View.GONE) ? View.VISIBLE
+				: View.GONE;
+
 		((ScrollView) findViewById(R.id.help_ll)).setVisibility(visi);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(visi);
-		
+
 		((ScrollView) findViewById(R.id.help_ll)).setVisibility(visi);
 		((LinearLayout) findViewById(R.id.help_ll_detail)).setVisibility(visi);
-	} 
-	
-	public void showInfo(View v){
-		DialogFragment newFragment = HelpDialog.newInstance("Black color == drill low\nWhite color == drill deep\n\n 320x320 max size", HelpDialog.TYPE_HELP);
-	    newFragment.show(getFragmentManager(), HelpDialog.TAG);
 	}
-	
-	public void toggle(View v){
-		int vis =  ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? View.VISIBLE : View.GONE); 
-		String t =  ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? "x" : "□");
-		((TextView)findViewById(R.id.toggle)).setText(t);		
-		findViewById(R.id.linearLayout1).setVisibility(vis);		
+
+	public void showInfo(View v) {
+		DialogFragment newFragment = HelpDialog
+				.newInstance(
+						"Black color == drill low\nWhite color == drill deep\n\n 320x320 max size",
+						HelpDialog.TYPE_HELP);
+		newFragment.show(getFragmentManager(), HelpDialog.TAG);
 	}
-	
-	public void sleep(View v){
-		findViewById(R.id.sleep).setVisibility(View.VISIBLE);		
+
+	public void toggle(View v) {
+		int vis = ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? View.VISIBLE
+				: View.GONE);
+		String t = ((findViewById(R.id.linearLayout1).getVisibility() == View.GONE) ? "x"
+				: "□");
+		((TextView) findViewById(R.id.toggle)).setText(t);
+		findViewById(R.id.linearLayout1).setVisibility(vis);
+	}
+
+	public void sleep(View v) {
+		findViewById(R.id.sleep).setVisibility(View.VISIBLE);
 		findViewById(R.id.minimalize).setVisibility(View.GONE);
 	}
-	
-	public void endSleep(View v){		
-		findViewById(R.id.sleep).setVisibility(View.GONE);		
-		findViewById(R.id.minimalize).setVisibility(View.VISIBLE);
-	}	
-	
-	public void penHeadDownMin(View view){
-		if (isPrinting){
-			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
-			return;
-		}	
-		if (isConnected()){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MIN_DOWN, Integer.parseInt(drillMin.getText().toString().trim())/2);
-		}
-	}
-	
-	public void penHeadUpMin(View view){
-		if (isPrinting){
-			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		if (isConnected()){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MIN_UP, Integer.parseInt(drillMin.getText().toString().trim())/2);
-		}
-	}
-	
-	public void penHeadDownMax(View view){
-		if (isPrinting){
-			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		if (isConnected()){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MAX_DOWN, Integer.parseInt(drillMax.getText().toString().trim())/2);
-		}
-	}
-	
-	public void penHeadUpMax(View view){
-		if (isPrinting){
-			Toast.makeText(this, "NO ACTION - printing in progress", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		if (isConnected()){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.DRILL_MAX_UP, Integer.parseInt(drillMax.getText().toString().trim())/2);
-		}
-	}
-	
-	public void testConnection(View view){
-		if (isConnected()){
-			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
-					BTControls.TEST_CONNECTION, 0);
-		}else{
-			Toast.makeText(thisActivity, "not connected", Toast.LENGTH_LONG).show();
-		}
-	}
-	
-	
-	public void minusX(View view){
-		if (cropWidth>0){
-			cropWidth --;
-		}
-		editX.setText(cropWidth+"");
-		updateImgArea();
-	}
-	public void plusX(View view){
-		cropWidth ++;
-		editX.setText(cropWidth+"");
-		updateImgArea();
-	}
-	
-	public void minusY(View view){
-		if (cropHeight>0){
-			cropHeight --;
-		}
-		editY.setText(cropHeight+"");
-		updateImgArea();
-	}			
-	public void plusY(View view){
-		cropHeight ++;		
-		editY.setText(cropHeight+"");
-		updateImgArea();
-	}
-	
-	private void updateImgArea(){
 
-		if (editX.getText().length() == 0){
+	public void endSleep(View v) {
+		findViewById(R.id.sleep).setVisibility(View.GONE);
+		findViewById(R.id.minimalize).setVisibility(View.VISIBLE);
+	}
+
+	public void penHeadDownMin(View view) {
+		if (isPrinting) {
+			Toast.makeText(this, "NO ACTION - printing in progress",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (isConnected()) {
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+					BTControls.DRILL_MIN_DOWN,
+					Integer.parseInt(drillMin.getText().toString().trim()) / 2);
+		}
+	}
+
+	public void penHeadUpMin(View view) {
+		if (isPrinting) {
+			Toast.makeText(this, "NO ACTION - printing in progress",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (isConnected()) {
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+					BTControls.DRILL_MIN_UP,
+					Integer.parseInt(drillMin.getText().toString().trim()) / 2);
+		}
+	}
+
+	public void penHeadDownMax(View view) {
+		if (isPrinting) {
+			Toast.makeText(this, "NO ACTION - printing in progress",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (isConnected()) {
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+					BTControls.DRILL_MAX_DOWN,
+					Integer.parseInt(drillMax.getText().toString().trim()) / 2);
+		}
+	}
+
+	public void penHeadUpMax(View view) {
+		if (isPrinting) {
+			Toast.makeText(this, "NO ACTION - printing in progress",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (isConnected()) {
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+					BTControls.DRILL_MAX_UP,
+					Integer.parseInt(drillMax.getText().toString().trim()) / 2);
+		}
+	}
+
+	public void testConnection(View view) {
+		if (isConnected()) {
+			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+					BTControls.TEST_CONNECTION, 0);
+		} else {
+			Toast.makeText(thisActivity, "not connected", Toast.LENGTH_LONG)
+					.show();
+		}
+	}
+
+	public void minusX(View view) {
+		if (cropWidth > 0) {
+			cropWidth--;
+		}
+		editX.setText(cropWidth + "");
+		updateImgArea();
+	}
+
+	public void plusX(View view) {
+		cropWidth++;
+		editX.setText(cropWidth + "");
+		updateImgArea();
+	}
+
+	public void minusY(View view) {
+		if (cropHeight > 0) {
+			cropHeight--;
+		}
+		editY.setText(cropHeight + "");
+		updateImgArea();
+	}
+
+	public void plusY(View view) {
+		cropHeight++;
+		editY.setText(cropHeight + "");
+		updateImgArea();
+	}
+
+	private void updateImgArea() {
+
+		if (editX.getText().length() == 0) {
 			cropWidth = 0;
-		}else{
+		} else {
 			cropWidth = Integer.parseInt(editX.getText().toString().trim());
 		}
-		
-		if (editY.getText().length() == 0){
+
+		if (editY.getText().length() == 0) {
 			cropHeight = 0;
-		}else{
+		} else {
 			cropHeight = Integer.parseInt(editY.getText().toString().trim());
 		}
 
-		if (imgCaptured){			
-			
-			if (capturedImage != null){
+		if (imgCaptured) {
+
+			if (capturedImage != null) {
 				capturePrintImage = capturedImage.clone();
 			}
-		}else if (imgLoaded){
-			
-			if (loadImage != null){
+		} else if (imgLoaded) {
+
+			if (loadImage != null) {
 				loadPrintImage = loadImage.clone();
 				addCropAreaToCaptureView(loadPrintImage);
-				ivImageFile.setImageBitmap(ImageConvertClass.matToBitmap(loadPrintImage) );
-			}			
+				ivImageFile.setImageBitmap(ImageConvertClass
+						.matToBitmap(loadPrintImage));
+			}
 		}
 	}
-	
-	private void sendImgPart(){
-		
-		finalImage = ImageConvertClass.bitmapToMat(ImageLog.getImageFromFile(thisActivity, ImageLog.PRINT_IMAGE));
-		
-		//log full image
+
+	private void sendImgPart() {
+
+		finalImage = ImageConvertClass.bitmapToMat(ImageLog.getImageFromFile(
+				thisActivity, ImageLog.PRINT_IMAGE));
+
+		// log full image
 		Bitmap b1 = ImageConvertClass.matToBitmap(finalImage);
-		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image.jpg");		
+		ImageLog.saveImageToFile(getApplicationContext(), b1, "last_image.jpg");
 		// log crop image
-		Bitmap b2 = ImageConvertClass.cropImage(finalImage, cutFromX, cutFromY, cropWidth, cropHeight);
-		ImageLog.saveImageToFile(getApplicationContext(), b2, "last_image_print.jpg");
-		
-		
-		//debug log test		
-		/*ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
-		Log.d("SVB", "l.size="+ l.size());
-		for (int i = 0; i < 10; i++) {
-			Log.d("SVB", "l["+i+"].size="+ l.get(i));
-		}
-		for (int i = l.size()-10; i < l.size(); i++) {
-			Log.d("SVB", "l["+i+"].size="+ l.get(i));
-		}
-		int pT= DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX, cutFromY, cropWidth, cropHight, PART_SIZE);
-		Log.d("SVB", "partsTotal:" + pT);
-		
-		int cnt = 0; 
-		for (int a : l) {
-			cnt += a;
-		}		
-		Log.d("SVB", "count:" + cnt);*/
-		
-		
-		if (isConnected()){
+		Bitmap b2 = ImageConvertClass.cropImage(finalImage, cutFromX, cutFromY,
+				cropWidth, cropHeight);
+		ImageLog.saveImageToFile(getApplicationContext(), b2,
+				"last_image_print.jpg");
+
+		// debug log test
+		/*
+		 * ArrayList<Integer> l = ImageConvertClass.getImagetoIntList(b2);
+		 * Log.d("SVB", "l.size="+ l.size()); for (int i = 0; i < 10; i++) {
+		 * Log.d("SVB", "l["+i+"].size="+ l.get(i)); } for (int i = l.size()-10;
+		 * i < l.size(); i++) { Log.d("SVB", "l["+i+"].size="+ l.get(i)); } int
+		 * pT= DrillPrinterHelper.getCountImageParts(capturedImage, cutFromX,
+		 * cutFromY, cropWidth, cropHight, PART_SIZE); Log.d("SVB",
+		 * "partsTotal:" + pT);
+		 * 
+		 * int cnt = 0; for (int a : l) { cnt += a; } Log.d("SVB", "count:" +
+		 * cnt);
+		 */
+
+		if (isConnected()) {
 			isPrinting = true;
 			sendImg = true;
 			updateView(true);
-			
-			int partsTotal = DrillPrinterHelper.getCountImageParts(finalImage, cutFromX, cutFromY, cropWidth, cropHeight, PART_SIZE); 
-			
-			if (partsTotal > part){
+
+			int partsTotal = DrillPrinterHelper.getCountImageParts(finalImage,
+					cutFromX, cutFromY, cropWidth, cropHeight, PART_SIZE);
+
+			if (partsTotal > part) {
 				part++;
-				Toast.makeText(this, "SENDING part: " + part, Toast.LENGTH_SHORT).show();
-															
-				boolean res = DrillPrinterHelper.sendImgPart(finalImage, cutFromX, cutFromY, cropWidth, cropHeight, part, partsTotal, PART_SIZE, this);
-				
-				if (res){
+				Toast.makeText(this, "SENDING part: " + part,
+						Toast.LENGTH_SHORT).show();
+
+				boolean res = DrillPrinterHelper.sendImgPart(finalImage,
+						cutFromX, cutFromY, cropWidth, cropHeight, part,
+						partsTotal, PART_SIZE, this);
+
+				// finished printing
+				if (res) {
 					Date date = new Date(System.currentTimeMillis());
-					String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
+					String time = new SimpleDateFormat("HH:mm", Locale.US)
+							.format(date);
 					String t = "\n end: " + time + "\n\n";
 					MyLogger.addLog(GameDrillPrinter.this, "sending.txt", t);
 					statusTv.append(t);
-					
+
+					sendEmailNotif();
+
 				}
 				updateProgress(part, partsTotal);
-				
-			}else{
-				Toast.makeText(this, "partREQUEST ERR", Toast.LENGTH_SHORT).show();
-			}	
-		}else{
+
+			} else {
+				Toast.makeText(this, "partREQUEST ERR", Toast.LENGTH_SHORT)
+						.show();
+			}
+		} else {
 			Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
 		}
-	}				
-	
-	private void updateProgress(int part, int totalParts){		
+	}
+
+	/**
+	 * if set url, open URL in browser (do email notification)
+	 */
+	private void sendEmailNotif() {
+
+		String url = PreferenceManager.getDefaultSharedPreferences(
+				getApplicationContext()).getString(PRINT_FINISH_URL, null);
+		if (url != null) {
+			if (!SuppClass.isConnectedOrConnecting(getApplicationContext())) {
+				WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+				wifiManager.setWifiEnabled(true);
+			}
+			Intent i = new Intent(Intent.ACTION_VIEW);
+			i.setData(Uri.parse(url));
+			startActivity(i);
+		}
+	}
+
+	/**
+	 * show dialog for entering url to launch after finished printing
+	 */
+	private void enterNotifUrl() {
+		ChooseURLOnFinishDrill newFragment = ChooseURLOnFinishDrill
+				.newInstance();
+		newFragment.show(getFragmentManager(), ChooseURLOnFinishDrill.TAG);
+	}
+
+	private void updateProgress(int part, int totalParts) {
 		progressTv.setText("part: " + part + " / " + totalParts);
 		progressBar.setMax(totalParts);
 		progressBar.setProgress(part);
-	}	
-	
+	}
+
 	private void updateView(boolean imageCaptured) {
-		
-		int show = (imageCaptured) ? View.VISIBLE : View.GONE; 
-		
-		btnHist.setVisibility(show);				
+
+		int show = (imageCaptured) ? View.VISIBLE : View.GONE;
+
+		btnHist.setVisibility(show);
 		btnSendCrop.setVisibility(show);
 		btnInvert.setVisibility(show);
-		llProgress.setVisibility((sendImg) ? View.VISIBLE: View.GONE);										
-		
-		if (isPrinting){
+		llProgress.setVisibility((sendImg) ? View.VISIBLE : View.GONE);
+
+		if (isPrinting) {
 			btnHist.setEnabled(false);
 			btnSendCrop.setEnabled(false);
 			btnInvert.setEnabled(false);
@@ -625,27 +704,25 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			btnReset.setEnabled(false);
 			editX.setEnabled(false);
 			editY.setEnabled(false);
-			((Button)findViewById(R.id.plusx)).setEnabled(false);
-			((Button)findViewById(R.id.minusx)).setEnabled(false);
-			((Button)findViewById(R.id.plusy)).setEnabled(false);
-			((Button)findViewById(R.id.minusy)).setEnabled(false);
-	
-			if (statusTv.getText().length() == 0){
+			((Button) findViewById(R.id.plusx)).setEnabled(false);
+			((Button) findViewById(R.id.minusx)).setEnabled(false);
+			((Button) findViewById(R.id.plusy)).setEnabled(false);
+			((Button) findViewById(R.id.minusy)).setEnabled(false);
+
+			if (statusTv.getText().length() == 0) {
 				Date date = new Date(System.currentTimeMillis());
-				String time = new SimpleDateFormat("HH:mm", Locale.US).format(date);
-				String t = " xStart: " + cutFromX + "\n"
-						+ " yStart: " + cutFromY + "\n\n"
-						+ " start: " + time;
-				statusTv.setText("log:\n"
-						+ " KEEP DEVICE ENOUGHT POWER !\n\n"
+				String time = new SimpleDateFormat("HH:mm", Locale.US)
+						.format(date);
+				String t = " xStart: " + cutFromX + "\n" + " yStart: "
+						+ cutFromY + "\n\n" + " start: " + time;
+				statusTv.setText("log:\n" + " KEEP DEVICE ENOUGHT POWER !\n\n"
 						+ t);
-				
+
 				MyLogger.addLog(GameDrillPrinter.this, "sending.txt", t);
 			}
-		}		
-		
+		}
+
 	}
-	
 
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@Override
@@ -661,7 +738,6 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			}
 		}
 	};
-			
 
 	@Override
 	public void onPause() {
@@ -681,66 +757,66 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	public void onDestroy() {
 		timer.cancel();
 		timer = null;
-		
+
 		super.onDestroy();
 		destroyBTCommunicator();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
-		
+
 	}
 
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 	}
 
-	
 	@Override
 	public void onCameraViewStopped() {
 	}
 
 	/**
-	 * pri sputenej kamera opakovane volame nasledove:
-	 *  staticke hodnoty pre farby a sputime detekciu - > detectMultiBlob 
+	 * pri sputenej kamera opakovane volame nasledove: staticke hodnoty pre
+	 * farby a sputime detekciu - > detectMultiBlob
 	 * 
 	 */
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		
-		if (capturedImage != null){			
+
+		if (capturedImage != null) {
 			addCropAreaToCaptureView(capturePrintImage);
 			return capturePrintImage;
 		}
-		
+
 		Mat src = inputFrame.rgba();
-		
-		if (doCapture){
+
+		if (doCapture) {
 			doCapture = false;
-			capturedImage = src;	
-			Imgproc.cvtColor(capturedImage, capturedImage, Imgproc.COLOR_RGB2GRAY); 
+			capturedImage = src;
+			Imgproc.cvtColor(capturedImage, capturedImage,
+					Imgproc.COLOR_RGB2GRAY);
 			capturePrintImage = capturedImage.clone();
-		}else{			
+		} else {
 			addCropAreaToCaptureView(src);
 		}
-		
-		
+
 		return src;
 	}
 
-	private void addCropAreaToCaptureView(Mat img){
-	
-		Core.rectangle(img, 
-				new Point(cutFromX-1, cutFromY-1), new Point(cutFromX+cropWidth+1, cutFromY+cropHeight+1), 
+	private void addCropAreaToCaptureView(Mat img) {
+
+		Core.rectangle(img, new Point(cutFromX - 1, cutFromY - 1), new Point(
+				cutFromX + cropWidth + 1, cutFromY + cropHeight + 1),
 				new Scalar(255, 255, 255), 1, 1, 0);
-		Core.rectangle(img, 
-				new Point(cutFromX, cutFromY), new Point(cutFromX+cropWidth, cutFromY+cropHeight), 
-				new Scalar(0, 0, 0), 1, 1, 0);
-		Core.rectangle(img, 
-				new Point(cutFromX+1, cutFromY+1), new Point(cutFromX+cropWidth-1, cutFromY+cropHeight-1), 
+		Core.rectangle(img, new Point(cutFromX, cutFromY), new Point(cutFromX
+				+ cropWidth, cutFromY + cropHeight), new Scalar(0, 0, 0), 1, 1,
+				0);
+		Core.rectangle(img, new Point(cutFromX + 1, cutFromY + 1), new Point(
+				cutFromX + cropWidth - 1, cutFromY + cropHeight - 1),
 				new Scalar(255, 255, 255), 1, 1, 0);
 	}
-	
+
 	/**
-	 * menu ponuka okrem pripojenia na robota aj zmenu rozlisenia displeja a zmenu farebneho nasatenia 
+	 * menu ponuka okrem pripojenia na robota aj zmenu rozlisenia displeja a
+	 * zmenu farebneho nasatenia
 	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -751,7 +827,8 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			return true;
 		}
 
-		mColorEffectsMenu = menu.addSubMenu(getString(R.string.colors_color_effect));
+		mColorEffectsMenu = menu
+				.addSubMenu(getString(R.string.colors_color_effect));
 		mEffectMenuItems = new MenuItem[effects.size()];
 
 		int idx = 0;
@@ -762,8 +839,9 @@ public class GameDrillPrinter extends GameTemplateClass implements
 					element);
 			idx++;
 		}
- 
-		mResolutionMenu = menu.addSubMenu(getString(R.string.colors_resolution));
+
+		mResolutionMenu = menu
+				.addSubMenu(getString(R.string.colors_resolution));
 		mResolutionList = mOpenCvCameraView.getResolutionList();
 		mResolutionMenuItems = new MenuItem[mResolutionList.size()];
 
@@ -780,7 +858,7 @@ public class GameDrillPrinter extends GameTemplateClass implements
 
 		return true;
 	}
-	
+
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
 		if (item.getGroupId() == 1) {
@@ -795,119 +873,130 @@ public class GameDrillPrinter extends GameTemplateClass implements
 			String caption = Integer.valueOf(resolution.width).toString() + "x"
 					+ Integer.valueOf(resolution.height).toString();
 			Toast.makeText(this, caption, Toast.LENGTH_SHORT).show();
-		} else if (item.getGroupId() == 3){
+		} else if (item.getGroupId() == 3) {
 			if (getMyBTCommunicator() == null || isConnected() == false) {
 				selectNXT();
 			} else {
 				destroyBTCommunicator();
 				updateButtonsAndMenu();
-			}			
+			}
 		}
 
 		return true;
-	}		
-	
+	}
+
 	@Override
-	public void onConnectToDevice() {				
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.GAME_TYPE, BTControls.PROGRAM_DRILL_PRINTER, 0);
+	public void onConnectToDevice() {
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.GAME_TYPE,
+				BTControls.PROGRAM_DRILL_PRINTER, 0);
 	}
 
 	@Override
 	public void recieveMsgFromNxt(Message myMessage) {
 		int type = myMessage.getData().getInt("message");
-		//Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();	
-		
-		MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "RECIEVE FROM NXT: " + type);
-		switch(type){
-			case BTControls.FILE_NEW_PACKAGE_REQUEST:				
-				MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "NEW PACKAGE REQUEST");
-				sendImgPart();
-				break;
-				
-			case BTControls.TEST_CONNECTION:								
-				Toast.makeText(thisActivity, "Device connected OK", Toast.LENGTH_LONG).show();
-				break;	
-			
-			default:
-				// Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
-				break;
-		}
-				
-	}
-	
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) { 
-	    super.onActivityResult(requestCode, resultCode, imageReturnedIntent); 
+		// Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
 
-	    switch(requestCode) { 
-	    case SELECT_PHOTO:
-	        if(resultCode == RESULT_OK){  
-	            Uri selectedImage = imageReturnedIntent.getData();
-	            try {
-					Bitmap b = decodeUri(this, selectedImage, this.IMAGE_LOAD_FORM_FILE_SIZE);
-					
+		MyLogger.addLog(GameDrillPrinter.this, "sending.txt",
+				"RECIEVE FROM NXT: " + type);
+		switch (type) {
+		case BTControls.FILE_NEW_PACKAGE_REQUEST:
+			MyLogger.addLog(GameDrillPrinter.this, "sending.txt",
+					"NEW PACKAGE REQUEST");
+			sendImgPart();
+			break;
+
+		case BTControls.TEST_CONNECTION:
+			Toast.makeText(thisActivity, "Device connected OK",
+					Toast.LENGTH_LONG).show();
+			break;
+
+		default:
+			// Toast.makeText(this, "msg: " + type , Toast.LENGTH_SHORT).show();
+			break;
+		}
+
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode,
+			Intent imageReturnedIntent) {
+		super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+
+		switch (requestCode) {
+		case SELECT_PHOTO:
+			if (resultCode == RESULT_OK) {
+				Uri selectedImage = imageReturnedIntent.getData();
+				try {
+					Bitmap b = decodeUri(this, selectedImage,
+							this.IMAGE_LOAD_FORM_FILE_SIZE);
+
 					// --convert to grayscale
 					loadImage = ImageConvertClass.bitmapToMat(b);
-					Imgproc.cvtColor(loadImage, loadImage, Imgproc.COLOR_RGB2GRAY);
+					Imgproc.cvtColor(loadImage, loadImage,
+							Imgproc.COLOR_RGB2GRAY);
 					b = ImageConvertClass.matToBitmap(loadImage);
 					// --convert to grayscale
-					
+
 					ivImageFile.setImageBitmap(b);
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				}
-	            
-	            ivImageFile.setVisibility(View.VISIBLE);
-	            mOpenCvCameraView.setVisibility(View.GONE);
-	            imgLoaded = true;
-	            
-	            toggleImgBtns(true);
-	            updateView(true);
 
-	        }
-	    }
+				ivImageFile.setVisibility(View.VISIBLE);
+				mOpenCvCameraView.setVisibility(View.GONE);
+				imgLoaded = true;
+
+				toggleImgBtns(true);
+				updateView(true);
+
+			}
+		}
 	}
 
 	/**
-	 * resize image, load by Uri
-	 * thank you stackowerflow : <br>
-	 * <b>http://stackoverflow.com/questions/10773511/how-to-resize-an-image-i-picked-from-the-gallery-in-android</b>	
+	 * resize image, load by Uri thank you stackowerflow : <br>
+	 * <b>http://stackoverflow.com/questions/10773511/how-to-resize-an-image-i-
+	 * picked-from-the-gallery-in-android</b>
 	 */
-	public Bitmap decodeUri(Context c, Uri uri, final int requiredSize) 
-            throws FileNotFoundException {
-        BitmapFactory.Options o = new BitmapFactory.Options();
-        o.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri), null, o);
+	public Bitmap decodeUri(Context c, Uri uri, final int requiredSize)
+			throws FileNotFoundException {
+		BitmapFactory.Options o = new BitmapFactory.Options();
+		o.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri),
+				null, o);
 
-        width_tmp = o.outWidth;
-        height_tmp = o.outHeight;
-        scale = 1;
+		width_tmp = o.outWidth;
+		height_tmp = o.outHeight;
+		scale = 1;
 
-        while(true) {
-            if(width_tmp / 2 < requiredSize || height_tmp / 2 < requiredSize)
-                break;
-            width_tmp /= 2;
-            height_tmp /= 2;
-            scale *= 2;
-        }
+		while (true) {
+			if (width_tmp / 2 < requiredSize || height_tmp / 2 < requiredSize)
+				break;
+			width_tmp /= 2;
+			height_tmp /= 2;
+			scale *= 2;
+		}
 
-        BitmapFactory.Options o2 = new BitmapFactory.Options();
-        o2.inSampleSize = scale;
-        return BitmapFactory.decodeStream(c.getContentResolver().openInputStream(uri), null, o2);
-    }
-	
-	private void initPrinterSettings() {		
-		
-		sendBTCmessage(BTCommunicator.NO_DELAY,				
-				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_HEAD_MOVE, Integer.parseInt(drillHeadMove.getText().toString().trim()));
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_SPEED, Integer.parseInt(drillSpeed.getText().toString().trim()));		
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_MIN_DRILL, Integer.parseInt(drillMin.getText().toString().trim())/2);
-		sendBTCmessage(BTCommunicator.NO_DELAY,
-				BTCommunicator.DO_ACTION, BTControls.DRILL_SET_MAX_DRILL, Integer.parseInt(drillMax.getText().toString().trim())/2);
-		
+		BitmapFactory.Options o2 = new BitmapFactory.Options();
+		o2.inSampleSize = scale;
+		return BitmapFactory.decodeStream(c.getContentResolver()
+				.openInputStream(uri), null, o2);
+	}
+
+	private void initPrinterSettings() {
+
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+				BTControls.DRILL_SET_HEAD_MOVE,
+				Integer.parseInt(drillHeadMove.getText().toString().trim()));
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+				BTControls.DRILL_SET_SPEED,
+				Integer.parseInt(drillSpeed.getText().toString().trim()));
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+				BTControls.DRILL_SET_MIN_DRILL,
+				Integer.parseInt(drillMin.getText().toString().trim()) / 2);
+		sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION,
+				BTControls.DRILL_SET_MAX_DRILL,
+				Integer.parseInt(drillMax.getText().toString().trim()) / 2);
+
 	}
 }
-

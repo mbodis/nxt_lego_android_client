@@ -98,6 +98,7 @@
 	
 	<!-- PROGRAM DRILL FOTO -->
 	<string name="drill_printer_hide">-&gt; hide &lt;-</string>
+	<string name="dialog_finish_url_title">Launch URL when finished</string>
 	
 	<!-- PROGRAM READ LINE -->
 	<string name="read_line_update_value">update value</string>
