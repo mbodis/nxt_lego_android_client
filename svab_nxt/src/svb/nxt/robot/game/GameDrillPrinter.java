@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -137,10 +139,27 @@ public class GameDrillPrinter extends GameTemplateClass implements
 	int PART_SIZE = 100; 
 	int cutFromX = 0;
 	int cutFromY = 0;
-	private int part = 0; // current sending part	
+	private int part = 0; // current sending part
+	
+	Timer timer;
 	
 	@Override
 	public void setupLayout(){
+		
+		// every 5 minutes check if does not fell asleep
+		timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			public void run() {
+				
+				if (isConnected()){
+					MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "==============TIMER CHECK============== is connected");
+					testConnection(null);
+				}else{
+					MyLogger.addLog(GameDrillPrinter.this, "sending.txt", "==============TIMER CHECK============== is not connected");
+				}
+			}
+		}, 5*60*1000, 5*60*1000);
+		
 		
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                  WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -660,10 +679,14 @@ public class GameDrillPrinter extends GameTemplateClass implements
 
 	@Override
 	public void onDestroy() {
+		timer.cancel();
+		timer = null;
+		
 		super.onDestroy();
 		destroyBTCommunicator();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
+		
 	}
 
 	@Override

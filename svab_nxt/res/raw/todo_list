@@ -1,10 +1,6 @@
-TODO LIST:
-
-	BUG FIXIES:
-	- printer: run check connection every 5 minutes
+TODO LIST:	
 	
 	UPDATE
-	- printer: send email notification after finished printing (url my server)
 	- printer (error while printing - drill head move up before next column) - e.g. -> print valuers 10,20,20,10,10,15
 	
 	NEW FEATURES:
