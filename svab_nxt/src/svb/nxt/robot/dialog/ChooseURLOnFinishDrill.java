@@ -33,8 +33,10 @@ public class ChooseURLOnFinishDrill extends DialogFragment {
 		LayoutInflater inflater = (LayoutInflater) getActivity()
 				.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 		final View layout = inflater.inflate(R.layout.dialog_save_url, null);
-
-		((EditText) layout.findViewById(R.id.editText1)).setText(previousURL);
+		
+		if (previousURL != ""){
+			((EditText) layout.findViewById(R.id.editText1)).setText(previousURL);
+		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(
