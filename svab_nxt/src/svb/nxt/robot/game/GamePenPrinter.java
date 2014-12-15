@@ -153,12 +153,14 @@ public class GamePenPrinter extends GameTemplateClass implements
 			}
 
 		});	
-		btnCaptureImage.setOnLongClickListener(new OnLongClickListener() {
+		((Button)findViewById(R.id.pen_settings)).setOnClickListener(new OnClickListener() {
 			
 			@Override
-			public boolean onLongClick(View v) {
-				((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.VISIBLE);
-				return false;
+			public void onClick(View v) {
+				
+				int vis =((LinearLayout) findViewById(R.id.help_ll)).getVisibility();
+				((LinearLayout) findViewById(R.id.help_ll)).setVisibility((vis==View.GONE) ? View.VISIBLE : View.GONE);				
+				
 			}
 		});
 		
@@ -271,10 +273,6 @@ public class GamePenPrinter extends GameTemplateClass implements
 			sendBTCmessage(BTCommunicator.NO_DELAY, BTCommunicator.DO_ACTION, 
 					BTControls.PEN_UP, 0);
 		}
-	}
-	
-	public void hide(View view){
-		((LinearLayout) findViewById(R.id.help_ll)).setVisibility(View.GONE);
 	}
 	
 	public void minusX(View view){

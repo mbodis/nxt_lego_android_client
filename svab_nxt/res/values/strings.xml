@@ -51,6 +51,7 @@
     <!-- MAIN -->
     <string name="robot">Robot</string>
     <string name="program">Program</string>
+    <string name="in_progress">in progress…</string>
 	
     <!-- PROGRAMS -->
     <string name="program_move_direction">Move direction</string>

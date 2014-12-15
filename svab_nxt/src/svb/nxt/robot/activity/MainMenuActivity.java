@@ -97,8 +97,8 @@ public class MainMenuActivity extends Activity {
 		} else if (robotType == ROBOT_ID_PRINTER) {
 			list.add(getString(R.string.program_drill_print_photo));
 			list.add(getString(R.string.program_pen_print_photo));
-			list.add(getString(R.string.program_print_test2));
-			list.add(getString(R.string.program_print_test));
+//			list.add(getString(R.string.program_print_test2));
+//			list.add(getString(R.string.program_print_test));
 		} else if (robotType == ROBOT_ID_SEGWAY) {
 			list.add(getString(R.string.program_segway));			
 		}
@@ -172,7 +172,7 @@ public class MainMenuActivity extends Activity {
 			playGame = new Intent(getApplicationContext(),
 					GameDrillPrinter.class);
 		} else if (selectedProgram.equals(getString(R.string.program_segway))){
-			Toast.makeText(getApplicationContext(), "in progress ...", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), getString(R.string.in_progress), Toast.LENGTH_SHORT).show();
 //			playGame = new Intent(getApplicationContext(),
 //					GameSegwayMove.class);
 		}

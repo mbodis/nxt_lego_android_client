@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"        
-        android:text="http://uetetnofolk.eu/index.php/admin/mail/FNSKLOS358NSHA553DBD8JDKLSO"
+        android:text=""
         android:ems="10" >
 
         <requestFocus />

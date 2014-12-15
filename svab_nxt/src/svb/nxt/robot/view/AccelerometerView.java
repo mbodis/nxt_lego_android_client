@@ -127,7 +127,8 @@ public class AccelerometerView extends SurfaceView implements Callback {
 						}
 					}
 				} finally {
-					surfaceHolder.unlockCanvasAndPost(c);
+					if (c != null)
+						this.surfaceHolder.unlockCanvasAndPost(c);
 				}
 				
 				try {
